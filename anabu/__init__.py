@@ -1,1 +1,1 @@
-#!/usr/bin/env ipython
+#!/usr/bin/env python3
