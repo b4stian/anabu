@@ -1,0 +1,33 @@
+"property", "value", "explanation"
+
+"operator", "Bastian", "Name of the operator executing the script for documentation."
+
+"sample_name", "W4/1518", "Sample name. Will use name of photo file if not specified."
+
+"photo_file", "C:/Users/Ebeling/Desktop/2021-12-17 Fotos/DSC00045.JPG", "Path to the photo file. If not found, will use dialog for selection."
+
+"target_Make", "SONY", "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_Model", "ILCE-7M2", "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_BrightnessValue", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_ExifImageWidth", 6000, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_ExifImageHeight", 4000, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_FocalLength", 28.0, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_ExposureTime", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_FNumber", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_LensModel", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_ISOSpeedRatings", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_WhiteBalance", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_MeteringMode", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_DigitalZoomRatio", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_MeteringMode", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+"target_FocalLengthIn35mmFilm", None, "Target EXIF tag for photo file. Will not run if different tags are found."
+
+"automask", True, If True, "Use automask, if False, try mask_file, then use dialog for selection."
+
+"mask_file", "", "Path to the mask file (if automask = False). If not found, will use dialog for selection."
+
+"mask_correction_x", 0, "Mask correction along x-axis in pixels"
+"mask_correction_y", 0, "Mask correction along y-axis in pixels"
+"mask_rotation_clockwise", 0, "Mask rotation clockwise in deg"
+
+"binarize_threshold", 150, "Threshold for binarizing photo file"
