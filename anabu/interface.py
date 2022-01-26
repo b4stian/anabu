@@ -42,15 +42,27 @@ class settings:
                 csvfile, delimiter=",", skipinitialspace=True, quoting=csv.QUOTE_MINIMAL)
             property_list = list(csvreader)
         # check if expected properties were in csv file and set them
-        # TODO implement check for type
         for num, property in enumerate(expected_settings.values()):
             corresponding_key = list(expected_settings.keys())[num]
             propertyitem = next(
                 (item for item in property_list if item["property"] == property[0]), None)
             if propertyitem:
-                setattr(self, corresponding_key,propertyitem['value'])
-                logging.info(
-                        f"Setting for \"{property[0]}\" found in {filename}. Value set to \"{propertyitem['value']}\".")
+                if propertyitem['value'] in ["None", "", "\"\"", "\'\'", "-", "---"]:
+                    setattr(self, corresponding_key, None)
+                    logging.info(
+                        f"Setting for \"{property[0]}\" found in {filename}. Value set to \"{None}\".")
+                else:
+                    # set datatype
+                    try:
+                        attr_type = property[2](propertyitem['value'])
+                        setattr(self, corresponding_key, attr_type)
+                        logging.info(
+                            f"Setting for \"{property[0]}\" found in {filename}. Value set to \"{propertyitem['value']}\".")
+                    except:
+                        setattr(self, corresponding_key,property[1])
+                        logging.warning(
+                            f"Setting for \"{property[0]}\" found in {filename}: \"{propertyitem['value']}\",\n"
+                            f"\tbut could not be converted to expected type \"{property[2]}\". Setting to default value of \"{property[1]}\".")
             else:
                 setattr(self, corresponding_key,property[1])
                 logging.warning(
@@ -69,16 +81,16 @@ settings_dict = {
     "target_BrightnessValue": ["target_BrightnessValue",None,int], 
     "target_ExifImageWidth": ["target_ExifImageWidth",None,int], 
     "target_ExifImageHeight": ["target_ExifImageHeight",None,int], 
-    "target_FocalLength": ["target_FocalLength",None,int], 
+    "target_FocalLength": ["target_FocalLength",None,float], 
     "target_ExposureTime": ["target_ExposureTime",None,float], 
-    "target_FNumber": ["target_FNumber",None,int], 
+    "target_FNumber": ["target_FNumber",None,float], 
     "target_LensModel": ["target_LensModel",None,str], 
     "target_ISOSpeedRatings": ["target_ISOSpeedRatings",None,int], 
     "target_WhiteBalance": ["target_WhiteBalance",None,int], 
     "target_MeteringMode": ["target_MeteringMode",None,int], 
-    "target_DigitalZoomRatio": ["target_DigitalZoomRatio",None,int], 
+    "target_DigitalZoomRatio": ["target_DigitalZoomRatio",None,float], 
     "target_MeteringMode": ["target_MeteringMode",None,str], 
-    "target_FocalLengthIn35mmFilm": ["target_FocalLengthIn35mmFilm",None,int], 
+    "target_FocalLengthIn35mmFilm": ["target_FocalLengthIn35mmFilm",None,float], 
     "automask": ["automask",True,bool], 
     "mask_file": ["mask_file",None,str], 
     "mask_correction_x": ["mask_correction_x",0,int], 
