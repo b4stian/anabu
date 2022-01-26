@@ -115,10 +115,20 @@ class settings:
 def run_interface():
     set_up_logging()
     set_up_tkinter()
-    user_settings = settings(f"{py_path}/standard_settings.csv", settings_dict)
+    try:
+        user_settings = settings(f"{py_path}/standard_settings.csv", settings_dict)
+    except:
+        try:
+            user_settings = settings("anabu/standard_settings.csv", settings_dict)
+        except:
+            logging.exception("Could not open standard_settings.csv. Exiting.")
+            raise Exception("Could not open standard_settings.csv.")
 
 
 # executed code
 
-# if __name__ == "__main__":
-run_interface()
+if __name__ == "__main__":
+    run_interface()
+
+
+print(__name__)
