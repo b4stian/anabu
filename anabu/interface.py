@@ -6,6 +6,37 @@ import logging
 from tkinter import Tk, filedialog, messagebox
 import csv
 
+# variables
+
+# property: ["name of property in csv", "default value if not found", "type of value"]
+# TODO Double-check target values
+settings_dict = {
+    "operator": ["operator","undefined",str], 
+    "sample_name": ["sample_name","undefined",str], 
+    "photo_file": ["photo_file","undefined",str], 
+    "target_Make": ["target_Make",None,str], 
+    "target_model": ["target_Model",None,str], 
+    "target_BrightnessValue": ["target_BrightnessValue",None,int], 
+    "target_ExifImageWidth": ["target_ExifImageWidth",None,int], 
+    "target_ExifImageHeight": ["target_ExifImageHeight",None,int], 
+    "target_FocalLength": ["target_FocalLength",None,float], 
+    "target_ExposureTime": ["target_ExposureTime",None,float], 
+    "target_FNumber": ["target_FNumber",None,float], 
+    "target_LensModel": ["target_LensModel",None,str], 
+    "target_ISOSpeedRatings": ["target_ISOSpeedRatings",None,int], 
+    "target_WhiteBalance": ["target_WhiteBalance",None,int], 
+    "target_MeteringMode": ["target_MeteringMode",None,int], 
+    "target_DigitalZoomRatio": ["target_DigitalZoomRatio",None,float], 
+    "target_MeteringMode": ["target_MeteringMode",None,str], 
+    "target_FocalLengthIn35mmFilm": ["target_FocalLengthIn35mmFilm",None,float], 
+    "automask": ["automask",True,bool], 
+    "mask_file": ["mask_file",None,str], 
+    "mask_correction_x": ["mask_correction_x",0,int], 
+    "mask_correction_y": ["mask_correction_y",0,int], 
+    "mask_rotation_clockwise": ["mask_rotation_clockwise",0,float], 
+    "binarize_threshold": ["binarize_threshold",150,int]
+    }
+
 # function/class definitions
 
 def set_up_logging():
@@ -67,39 +98,14 @@ class settings:
                 setattr(self, corresponding_key,property[1])
                 logging.warning(
                     f"Setting for \"{property[0]}\" expected but not found in {filename}. Setting to default value of \"{property[1]}\".")
+        logging.info(f"All user settings read from {filename}.")
 
-# variables
+def run_interface():
+    set_up_logging()
+    set_up_tkinter()
+    user_settings = settings("anabu/standard_settings.csv", settings_dict)
 
-# property: ["name of property in csv", "default value if not found", "type of value"]
-# TODO Double-check target values
-settings_dict = {
-    "operator": ["operator","undefined",str], 
-    "sample_name": ["sample_name","undefined",str], 
-    "photo_file": ["photo_file","undefined",str], 
-    "target_Make": ["target_Make",None,str], 
-    "target_model": ["target_Model",None,str], 
-    "target_BrightnessValue": ["target_BrightnessValue",None,int], 
-    "target_ExifImageWidth": ["target_ExifImageWidth",None,int], 
-    "target_ExifImageHeight": ["target_ExifImageHeight",None,int], 
-    "target_FocalLength": ["target_FocalLength",None,float], 
-    "target_ExposureTime": ["target_ExposureTime",None,float], 
-    "target_FNumber": ["target_FNumber",None,float], 
-    "target_LensModel": ["target_LensModel",None,str], 
-    "target_ISOSpeedRatings": ["target_ISOSpeedRatings",None,int], 
-    "target_WhiteBalance": ["target_WhiteBalance",None,int], 
-    "target_MeteringMode": ["target_MeteringMode",None,int], 
-    "target_DigitalZoomRatio": ["target_DigitalZoomRatio",None,float], 
-    "target_MeteringMode": ["target_MeteringMode",None,str], 
-    "target_FocalLengthIn35mmFilm": ["target_FocalLengthIn35mmFilm",None,float], 
-    "automask": ["automask",True,bool], 
-    "mask_file": ["mask_file",None,str], 
-    "mask_correction_x": ["mask_correction_x",0,int], 
-    "mask_correction_y": ["mask_correction_y",0,int], 
-    "mask_rotation_clockwise": ["mask_rotation_clockwise",0,float], 
-    "binarize_threshold": ["binarize_threshold",150,int]
-    }
+# executed code
 
-# run interface functions
-set_up_logging()
-set_up_tkinter()
-user_settings = settings("anabu/standard_settings.csv", settings_dict)
+if __name__ == "__main__":
+    run_interface()
