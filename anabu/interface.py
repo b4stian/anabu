@@ -9,6 +9,15 @@ import os
 
 # variables
 
+# path to file
+py_path = os.path.abspath(os.curdir)
+
+# paths to look for settings files (csv)
+settings_try_paths = (
+    f"{py_path}/standard_settings.csv",
+    "anabu/standard_settings.csv"
+)
+
 # property: ["name of property in csv", "default value if not found", "type of value"]
 # TODO Double-check target values
 settings_dict = {
@@ -37,8 +46,6 @@ settings_dict = {
     "mask_rotation_clockwise": ["mask_rotation_clockwise", 0, float],
     "binarize_threshold": ["binarize_threshold", 150, int],
 }
-
-py_path = os.path.abspath(os.curdir)
 
 # function/class definitions
 
@@ -70,13 +77,18 @@ class settings:
     """Object with user settings from scv file"""
 
     def __init__(self, filename: str, expected_settings: dict):
-        logging.info(f"Reading user settings from {filename}.")
+        """Read csv file with user settings and set them as attributes."""
+        logging.info(f"Trying to read user settings from {filename}.")
         # get list of dicts from csv file
-        with open(filename, "r") as csvfile:
-            csvreader = csv.DictReader(
-                csvfile, delimiter=",", skipinitialspace=True, quoting=csv.QUOTE_MINIMAL
-            )
-            property_list = list(csvreader)
+        try:
+            with open(filename, "r") as csvfile:
+                csvreader = csv.DictReader(
+                    csvfile, delimiter=",", skipinitialspace=True, quoting=csv.QUOTE_MINIMAL
+                    )
+                property_list = list(csvreader)
+            logging.info(f"Contents of {filename} read successfully.")
+        except:
+            logging.info(f"{filename} could not be opened.")
         # check if expected properties were in csv file and set them
         for num, property in enumerate(expected_settings.values()):
             corresponding_key = list(expected_settings.keys())[num]
@@ -88,7 +100,7 @@ class settings:
                 if propertyitem["value"] in ["None", "", '""', "''", "-", "---"]:
                     setattr(self, corresponding_key, None)
                     logging.info(
-                        f'Setting for "{property[0]}" found in {filename}. Value set to "{None}".'
+                        f'Setting for "{property[0]}" found. Value set to "{None}".'
                     )
                 else:
                     # set datatype
@@ -96,39 +108,59 @@ class settings:
                         attr_type = property[2](propertyitem["value"])
                         setattr(self, corresponding_key, attr_type)
                         logging.info(
-                            f"Setting for \"{property[0]}\" found in {filename}. Value set to \"{propertyitem['value']}\"."
+                            f"Setting for \"{property[0]}\" found. Value set to \"{propertyitem['value']}\"."
                         )
                     except:
                         setattr(self, corresponding_key, property[1])
                         logging.warning(
-                            f"Setting for \"{property[0]}\" found in {filename}: \"{propertyitem['value']}\",\n"
+                            f"Setting for \"{property[0]}\" found: \"{propertyitem['value']}\",\n"
                             f'\tbut could not be converted to expected type "{property[2]}". Setting to default value of "{property[1]}".'
                         )
             else:
                 setattr(self, corresponding_key, property[1])
                 logging.warning(
-                    f'Setting for "{property[0]}" expected but not found in {filename}. Setting to default value of "{property[1]}".'
+                    f'Setting for "{property[0]}" expected but not found. Setting to default value of "{property[1]}".'
                 )
         logging.info(f"All user settings read from {filename}.")
+
+def set_settings_path(*paths):
+    """Returns the path for the settings file. First by trying arguments, then by opening file dialog."""
+    logging.info("Trying to set the path to the settings file.")
+    for path in paths:
+        print(path)
+        try:
+            csvfile = open(path, "r")
+            csvfile.close()
+            logging.info(f"File found: \"{path}\".")
+            return path
+        except:
+            logging.info(f"Could not find \"{path}\".")
+    logging.info("Trying to select correct csv file with settings via file dialog.")
+    dialog_path = filedialog.askopenfilename(
+                filetypes=[("CSV files", ".csv")],
+                title="Select file containing the settings",
+                )
+    try:
+        csvfile = open(dialog_path, "r")
+        csvfile.close()
+        logging.info(f"Selected file with dialog: \"{path}\".")
+        return path
+    except:
+        logging.exception("Correct csv file with settings not defined via dialog. Exiting.")
+        raise Exception("Correct csv file with settings not defined via dialog. Exiting.")
+    
 
 
 def run_interface():
     set_up_logging()
     set_up_tkinter()
-    try:
-        user_settings = settings(f"{py_path}/standard_settings.csv", settings_dict)
-    except:
-        try:
-            user_settings = settings("anabu/standard_settings.csv", settings_dict)
-        except:
-            logging.exception("Could not open standard_settings.csv. Exiting.")
-            raise Exception("Could not open standard_settings.csv.")
+    settings_path = set_settings_path(*settings_try_paths)
+    user_settings = settings(settings_path, settings_dict)                  
 
+# executions
 
-# executed code
+# This construction is needed so that python.el doesn't ignore it.
+is_main = __name__ == "__main__" 
 
-if __name__ == "__main__":
+if is_main:
     run_interface()
-
-
-print(__name__)
