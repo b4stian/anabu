@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-# imports
+## imports
 
 import logging
 from tkinter import Tk, filedialog, messagebox
 import csv
 import os
 
-# variables
+## variables
 
 # path to file
 py_path = os.path.abspath(os.curdir)
@@ -47,7 +47,7 @@ settings_dict = {
     "binarize_threshold": ["binarize_threshold", 150, int],
 }
 
-# function/class definitions
+## function/class definitions
 
 
 def set_up_logging():
@@ -150,14 +150,14 @@ def set_settings_path(*paths):
         raise Exception("Correct csv file with settings not defined via dialog. Exiting.")
     
 
-
 def run_interface():
+    """Execute the interface functions."""
     set_up_logging()
     set_up_tkinter()
     settings_path = set_settings_path(*settings_try_paths)
     user_settings = settings(settings_path, settings_dict)                  
 
-# executions
+## executions
 
 # This construction is needed so that python.el doesn't ignore it.
 is_main = __name__ == "__main__" 
