@@ -80,6 +80,7 @@ class settings:
         """Read csv file with user settings and set them as attributes."""
         logging.info(f"Trying to read user settings from {filename}.")
         # get list of dicts from csv file
+        property_list = []
         try:
             with open(filename, "r") as csvfile:
                 csvreader = csv.DictReader(
@@ -143,8 +144,8 @@ def set_settings_path(*paths):
     try:
         csvfile = open(dialog_path, "r")
         csvfile.close()
-        logging.info(f"Selected file with dialog: \"{path}\".")
-        return path
+        logging.info(f"Selected file with dialog: \"{dialog_path}\".")
+        return dialog_path
     except:
         logging.exception("Correct csv file with settings not defined via dialog. Exiting.")
         raise Exception("Correct csv file with settings not defined via dialog. Exiting.")
