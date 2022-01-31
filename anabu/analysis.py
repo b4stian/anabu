@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-import interface
+import anabu.interface as interface
 
 version = "0.2.0"
+
+interface.set_up_logging()
 
 # function/class definitions
 

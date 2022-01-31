@@ -128,7 +128,6 @@ def set_settings_path(*paths):
     """Returns the path for the settings file. First by trying arguments, then by opening file dialog."""
     logging.info("Trying to set the path to the settings file.")
     for path in paths:
-        print(path)
         try:
             csvfile = open(path, "r")
             csvfile.close()
