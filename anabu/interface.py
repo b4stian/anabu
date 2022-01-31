@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 
-## imports
+# ------------------------------------------------
+# imports
+
 
 import logging
 from tkinter import Tk, filedialog, messagebox
 import csv
 import os
 
-## variables
+# ------------------------------------------------
+# variables
 
 # path to file
 py_path = os.path.abspath(os.curdir)
 
 # paths to look for settings files (csv)
-settings_try_paths = (
-    f"{py_path}/standard_settings.csv",
-    "anabu/standard_settings.csv"
-)
+settings_try_paths = (f"{py_path}/standard_settings.csv", "anabu/standard_settings.csv")
 
 # property: ["name of property in csv", "default value if not found", "type of value"]
 # TODO Double-check target values
@@ -49,7 +49,8 @@ settings_dict = {
     "create_ppt": ["create_ppt", True, bool],
 }
 
-## function/class definitions
+# ------------------------------------------------
+# function/class definitions
 
 
 def set_up_logging():
@@ -86,8 +87,11 @@ class settings:
         try:
             with open(filename, "r") as csvfile:
                 csvreader = csv.DictReader(
-                    csvfile, delimiter=",", skipinitialspace=True, quoting=csv.QUOTE_MINIMAL
-                    )
+                    csvfile,
+                    delimiter=",",
+                    skipinitialspace=True,
+                    quoting=csv.QUOTE_MINIMAL,
+                )
                 property_list = list(csvreader)
             logging.info(f"Contents of {filename} read successfully.")
         except:
@@ -126,6 +130,7 @@ class settings:
                 )
         logging.info(f"All user settings read from {filename}.")
 
+
 def set_settings_path(*paths):
     """Returns the path for the settings file. First by trying arguments, then by opening file dialog."""
     logging.info("Trying to set the path to the settings file.")
@@ -133,36 +138,42 @@ def set_settings_path(*paths):
         try:
             csvfile = open(path, "r")
             csvfile.close()
-            logging.info(f"File found: \"{path}\".")
+            logging.info(f'File found: "{path}".')
             return path
         except:
-            logging.info(f"Could not find \"{path}\".")
+            logging.info(f'Could not find "{path}".')
     logging.info("Trying to select correct csv file with settings via file dialog.")
     dialog_path = filedialog.askopenfilename(
-                filetypes=[("CSV files", ".csv")],
-                title="Select file containing the settings",
-                )
+        filetypes=[("CSV files", ".csv")],
+        title="Select file containing the settings",
+    )
     try:
         csvfile = open(dialog_path, "r")
         csvfile.close()
-        logging.info(f"Selected file with dialog: \"{dialog_path}\".")
+        logging.info(f'Selected file with dialog: "{dialog_path}".')
         return dialog_path
     except:
-        logging.exception("Correct csv file with settings not defined via dialog. Exiting.")
-        raise Exception("Correct csv file with settings not defined via dialog. Exiting.")
-    
+        logging.exception(
+            "Correct csv file with settings not defined via dialog. Exiting."
+        )
+        raise Exception(
+            "Correct csv file with settings not defined via dialog. Exiting."
+        )
 
-def run_interface():
+
+def run_interface() -> None:
     """Execute the interface functions."""
     # set_up_logging() needs to be executed individually at the very start
     set_up_tkinter()
     settings_path = set_settings_path(*settings_try_paths)
-    user_settings = settings(settings_path, settings_dict)                  
+    user_settings = settings(settings_path, settings_dict)
 
-## executions
+
+# ------------------------------------------------
+# executions
 
 # This construction is needed so that python.el doesn't ignore it.
-is_main = __name__ == "__main__" 
+is_main = __name__ == "__main__"
 
 if is_main:
     set_up_logging()

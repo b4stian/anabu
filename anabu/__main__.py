@@ -2,5 +2,10 @@
 
 from anabu.analysis import run
 
-if __name__ == "__main__":
+# ------------------------------------------------
+# executions
+
+is_main = __name__ == "__main__"
+
+if is_main:
     run()
