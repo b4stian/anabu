@@ -154,7 +154,7 @@ def set_settings_path(*paths):
 
 def run_interface():
     """Execute the interface functions."""
-    set_up_logging()
+    # set_up_logging() needs to be executed individually at the very start
     set_up_tkinter()
     settings_path = set_settings_path(*settings_try_paths)
     user_settings = settings(settings_path, settings_dict)                  
@@ -165,4 +165,5 @@ def run_interface():
 is_main = __name__ == "__main__" 
 
 if is_main:
+    set_up_logging()
     run_interface()

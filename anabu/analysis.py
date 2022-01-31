@@ -2,14 +2,13 @@
 
 import anabu.interface as interface
 
-version = "0.2.0"
-
-interface.set_up_logging()
+version = "0.3.0"
 
 # function/class definitions
 
 def run():
     """Runs the whole analysis script."""
+    interface.set_up_logging()
     interface.logging.info(
         "--------------------------------------------------------")
     interface.logging.info(
