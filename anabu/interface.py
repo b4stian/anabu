@@ -45,6 +45,8 @@ settings_dict = {
     "mask_correction_y": ["mask_correction_y", 0, int],
     "mask_rotation_clockwise": ["mask_rotation_clockwise", 0, float],
     "binarize_threshold": ["binarize_threshold", 150, int],
+    "crop_masked_photo": ["crop_masked_photo", True, bool],
+    "create_ppt": ["create_ppt", True, bool],
 }
 
 ## function/class definitions
