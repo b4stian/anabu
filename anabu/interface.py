@@ -3,11 +3,10 @@
 # ------------------------------------------------
 # imports
 
-
-import logging
-from tkinter import Tk, filedialog, messagebox
 import csv
+import logging
 import os
+from tkinter import Tk, filedialog, messagebox
 
 # ------------------------------------------------
 # variables
@@ -52,7 +51,6 @@ settings_dict = {
 # ------------------------------------------------
 # function/class definitions
 
-
 def set_up_logging():
     """logging setup"""
     logging.basicConfig(
@@ -66,7 +64,6 @@ def set_up_logging():
         # force=True,
     )
 
-
 def set_up_tkinter():
     """set up tkinter"""
     root = Tk()
@@ -75,9 +72,8 @@ def set_up_tkinter():
     # make opened windows will be active above all windows
     root.attributes("-topmost", True)
 
-
 class settings:
-    """Object with user settings from scv file"""
+    """Object with user settings from csv file"""
 
     def __init__(self, filename: str, expected_settings: dict):
         """Read csv file with user settings and set them as attributes."""
@@ -130,6 +126,9 @@ class settings:
                 )
         logging.info(f"All user settings read from {filename}.")
 
+    def settings_to_results(self, results: results_list):
+        """Saves the currently set settings to results object (for documentation)."""
+
 
 def set_settings_path(*paths):
     """Returns the path for the settings file. First by trying arguments, then by opening file dialog."""
@@ -160,14 +159,40 @@ def set_settings_path(*paths):
             "Correct csv file with settings not defined via dialog. Exiting."
         )
 
+class results_list:
+    """Object to export results as a csv file."""
+
+    def __init__(self):
+        """Initializes empty array with header for results as attribute 'results_data'."""
+        self.results_data = [["parameter", "variable", "value"]]
+
+    def add_results(self, *results: list):
+        """Adds results entries (3-item lists) to attribute 'results_data'."""
+        for result in results:
+            if type(result) == list and len(result) == 3 and type(result[0]) == str and type(result[1]) == str:
+                try:
+                    self.results_data.append(result)
+                except:
+                    logging.warning(f"Adding {result} to results failed.")
+            else:
+                logging.warning(
+                    "Can only add a 3-item list in which the first two items are strings.\n" 
+                    f"Could not add {result} to results."
+                )
+
+results = results_list()
+print(type(results) == results_list)
+results.add_results(*(["operator of the evaluation", "17", "13"],["operator of the evaluation", "17", "13"]))
+print(results.results_data)
+    
 
 def run_interface() -> None:
     """Execute the interface functions."""
     # set_up_logging() needs to be executed individually at the very start
     set_up_tkinter()
+    results = results_list()
     settings_path = set_settings_path(*settings_try_paths)
     user_settings = settings(settings_path, settings_dict)
-
 
 # ------------------------------------------------
 # executions
@@ -175,6 +200,6 @@ def run_interface() -> None:
 # This construction is needed so that python.el doesn't ignore it.
 is_main = __name__ == "__main__"
 
-if is_main:
+if not is_main:
     set_up_logging()
     run_interface()

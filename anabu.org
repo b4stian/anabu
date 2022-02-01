@@ -1,0 +1,37 @@
+* Open actions
+** TODO create class for photo file
+ - __init__ is read photo file as defined in interface
+** TODO create class for mask file
+ - __init__ is read photo file
+   - needs to compare dimensions or create automatically
+*** TODO read mask file
+ - can use the same function used to open the file!
+*** TODO create automask
+** Photo manipulation
+*** TODO Crop to patch, cut away black border
+*** TODO Add scale to cropped photo
+** Export functions
+*** TODO Option to create a ppt with results
+** TODO Pinhole measure tool
+** GUI
+ - Is this really necessary?
+* actions from notebook (sort)
+    Add all results to results array
+    Rotation of mask.
+    Autoalignment of mask based of position of two points
+    more parameters
+    area of high-brightness pixels (pinholes)
+    minimum brightness for safe pinholes
+    test which type of images work
+    correct: total_pixels = number_total_pixels
+    calculate height of peak
+    distribution of white pixels over area
+    prompt user for description of quality (with concrete question: do you see xxx?)
+    sample name -> mask sample name
+    prompt for parameter: camera settings
+    logging into GUI?
+save creation date of photo in results
+test if mask has same dimensions as photo
+correct: total_pixels = number_total_pixels
+auto-masking
+evaluate pinholes and "add to mask" for evaluation without pinholes
