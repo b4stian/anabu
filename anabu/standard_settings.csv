@@ -19,7 +19,6 @@
 "target_WhiteBalance", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_MeteringMode", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_DigitalZoomRatio", None, "Target EXIF tag for photo file. Will not run if different tags are found."
-"target_MeteringMode", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_FocalLengthIn35mmFilm", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 
 "automask", True, "If True use automask, if False, try mask_file, then use dialog for selection."

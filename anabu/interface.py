@@ -6,7 +6,7 @@
 import csv
 import logging
 import os
-from tkinter import Tk, filedialog, messagebox
+from tkinter import Tk, filedialog, messagebox # FIXME messagebox needed in this file?
 
 # ------------------------------------------------
 # variables
@@ -36,7 +36,6 @@ settings_dict = {
     "target_WhiteBalance": ["target_WhiteBalance", None, int],
     "target_MeteringMode": ["target_MeteringMode", None, int],
     "target_DigitalZoomRatio": ["target_DigitalZoomRatio", None, float],
-    "target_MeteringMode": ["target_MeteringMode", None, str],
     "target_FocalLengthIn35mmFilm": ["target_FocalLengthIn35mmFilm", None, float],
     "automask": ["automask", True, bool],
     "mask_file": ["mask_file", None, str],
@@ -157,6 +156,36 @@ class settings:
                 )
         logging.info(f"All user settings read from {filename}.")
 
+    @staticmethod
+    def set_settings_path(*paths):
+        """Returns the path for the settings file. First by trying arguments, then by opening file dialog."""
+        logging.info("Trying to set the path to the settings file.")
+        for path in paths:
+            try:
+                csvfile = open(path, "r")
+                csvfile.close()
+                logging.info(f'File found: "{path}".')
+                return path
+            except:
+                logging.info(f'Could not find "{path}".')
+        logging.info("Trying to select correct csv file with settings via file dialog.")
+        dialog_path = filedialog.askopenfilename(
+            filetypes=[("CSV files", ".csv")],
+            title="Select file containing the settings",
+        )
+        try:
+            csvfile = open(dialog_path, "r")
+            csvfile.close()
+            logging.info(f'Selected file with dialog: "{dialog_path}".')
+            return dialog_path
+        except:
+            logging.exception(
+                "Correct csv file with settings not defined via dialog. Exiting."
+            )
+            raise Exception(
+                "Correct csv file with settings not defined via dialog. Exiting."
+            )
+
     # FIXME finalize function
     def settings_to_results(self, results: results):
         """Saves the currently set settings to results object (for documentation)."""
@@ -168,49 +197,20 @@ class settings:
         """"""
         pass
 
-def set_settings_path(*paths):
-    """Returns the path for the settings file. First by trying arguments, then by opening file dialog."""
-    logging.info("Trying to set the path to the settings file.")
-    for path in paths:
-        try:
-            csvfile = open(path, "r")
-            csvfile.close()
-            logging.info(f'File found: "{path}".')
-            return path
-        except:
-            logging.info(f'Could not find "{path}".')
-    logging.info("Trying to select correct csv file with settings via file dialog.")
-    dialog_path = filedialog.askopenfilename(
-        filetypes=[("CSV files", ".csv")],
-        title="Select file containing the settings",
-    )
-    try:
-        csvfile = open(dialog_path, "r")
-        csvfile.close()
-        logging.info(f'Selected file with dialog: "{dialog_path}".')
-        return dialog_path
-    except:
-        logging.exception(
-            "Correct csv file with settings not defined via dialog. Exiting."
-        )
-        raise Exception(
-            "Correct csv file with settings not defined via dialog. Exiting."
-        )
-
 
 # FIXME delete this block
-results_list = results()
-print(type(results_list) == results)
-results_list.add_results(*(["operator of the evaluation", "17", "13"],["operator of the evaluation", "17", "13"]))
-print(results_list.results_data)
+#results_list = results()
+#print(type(results_list) == results)
+#results_list.add_results(*(["operator of the evaluation", "17", "13"],["operator of the evaluation", "17", "13"]))
+#print(results_list.results_data)
     
 
 def run_interface() -> None:
     """Execute the interface functions."""
     # set_up_logging() needs to be executed individually at the very start
     set_up_tkinter()
-    results = results_list()
-    settings_path = set_settings_path(*settings_try_paths)
+    results_list = results()
+    settings_path = settings.set_settings_path(*settings_try_paths)
     user_settings = settings(settings_path, settings_dict)
 
 # ------------------------------------------------
@@ -219,6 +219,6 @@ def run_interface() -> None:
 # This construction is needed so that python.el doesn't ignore it.
 is_main = __name__ == "__main__"
 
-if not is_main:
+if is_main:
     set_up_logging()
     run_interface()
