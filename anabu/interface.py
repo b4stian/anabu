@@ -6,7 +6,7 @@
 import csv
 import logging
 import os
-from tkinter import Tk, filedialog, messagebox # FIXME messagebox needed in this file?
+from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
 
 # ------------------------------------------------
 # variables
@@ -50,6 +50,7 @@ settings_dict = {
 # ------------------------------------------------
 # function/class definitions
 
+
 def set_up_logging():
     """logging setup"""
     logging.basicConfig(
@@ -63,6 +64,7 @@ def set_up_logging():
         # force=True,
     )
 
+
 def set_up_tkinter():
     """set up tkinter"""
     root = Tk()
@@ -71,13 +73,14 @@ def set_up_tkinter():
     # make opened windows will be active above all windows
     root.attributes("-topmost", True)
 
+
 class results:
     """Object to export results as a csv file."""
 
     def __init__(self):
         """
         Initializes empty array with header for results as attribute 'results_data'.
-        The first item is the variable for the parameter (as a string), the second 
+        The first item is the variable for the parameter (as a string), the second
         item is the explanation. The third item is the value of the parameter.
         """
         self.results_data = [["parameter", "variable", "value"]]
@@ -86,21 +89,23 @@ class results:
     def add_results(self, *results: list):
         """Adds results entries (3-item lists) to attribute 'results_data'."""
         for result in results:
-            if type(result) == list and len(result) == 3 \
-            and type(result[0]) == str and type(result[1]) == str:
-                try:
-                    self.results_data.append(result)
-                except:
-                    logging.warning(f"Adding {result} to results failed.")
+            if (
+                type(result) == list
+                and len(result) == 3
+                and type(result[0]) == str
+                and type(result[1]) == str
+            ):
+                self.results_data.append(result)
             else:
                 logging.warning(
-                    "Can only add a 3-item list in which the first two items are strings.\n" 
+                    "Can only add a 3-item list in which the first two items are strings.\n"
                     f"Could not add {result} to results."
                 )
 
     # FIXME finalize function
     def export_csv(self, filename):
         pass
+
 
 class settings:
     """Object with user settings from csv file"""
@@ -141,7 +146,8 @@ class settings:
                         attr_type = property[2](propertyitem["value"])
                         setattr(self, corresponding_key, attr_type)
                         logging.info(
-                            f"Setting for \"{property[0]}\" found. Value set to \"{propertyitem['value']}\"."
+                            f"Setting for \"{property[0]}\" found. "
+                            f"Value set to \"{propertyitem['value']}\"."
                         )
                     except:
                         setattr(self, corresponding_key, property[1])
@@ -158,7 +164,10 @@ class settings:
 
     @staticmethod
     def set_settings_path(*paths):
-        """Returns the path for the settings file. First by trying arguments, then by opening file dialog."""
+        """
+        Returns the path for the settings file.
+        First by trying arguments, then by opening file dialog.
+        """
         logging.info("Trying to set the path to the settings file.")
         for path in paths:
             try:
@@ -199,11 +208,11 @@ class settings:
 
 
 # FIXME delete this block
-#results_list = results()
-#print(type(results_list) == results)
-#results_list.add_results(*(["operator of the evaluation", "17", "13"],["operator of the evaluation", "17", "13"]))
-#print(results_list.results_data)
-    
+# results_list = results()
+# print(type(results_list) == results)
+# results_list.add_results(*(["operator of the evaluation", "17", "13"],["operator of the evaluation", "17", "13"]))
+# print(results_list.results_data)
+
 
 def run_interface() -> None:
     """Execute the interface functions."""
@@ -212,6 +221,7 @@ def run_interface() -> None:
     results_list = results()
     settings_path = settings.set_settings_path(*settings_try_paths)
     user_settings = settings(settings_path, settings_dict)
+
 
 # ------------------------------------------------
 # executions
