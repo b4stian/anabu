@@ -75,7 +75,7 @@ def set_up_tkinter():
 
 
 class results:
-    """Object to export results as a csv file."""
+    """Object to store and export all results."""
 
     def __init__(self):
         """
@@ -85,7 +85,6 @@ class results:
         """
         self.results_data = [["parameter", "variable", "value"]]
 
-    # FIXME Decorator for getter method?
     def add_results(self, *results: list):
         """Adds results entries (3-item lists) to attribute 'results_data'."""
         for result in results:
@@ -146,7 +145,7 @@ class settings:
                         attr_type = property[2](propertyitem["value"])
                         setattr(self, corresponding_key, attr_type)
                         logging.info(
-                            f"Setting for \"{property[0]}\" found. "
+                            f'Setting for "{property[0]}" found. '
                             f"Value set to \"{propertyitem['value']}\"."
                         )
                     except:
