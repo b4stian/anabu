@@ -3,6 +3,10 @@
 # ------------------------------------------------
 # imports
 
+from pptx import Presentation
+from pptx.enum.text import PP_ALIGN
 
 # ------------------------------------------------
 # executions
+
+prs = Presentation()
