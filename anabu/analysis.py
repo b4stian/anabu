@@ -8,7 +8,6 @@ import anabu.interface as interface
 
 # ------------------------------------------------
 # parameters
-#
 
 version = "0.3.0"
 

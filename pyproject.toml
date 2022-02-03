@@ -10,6 +10,7 @@ numpy = "1.21.5"
 matplotlib = "3.5.1"
 scipy = {path = "packages/scipy-1.7.3-cp37-cp37m-linux_armv7l.whl"}
 scikit-image = "^0.19.1"
+python-pptx = "^0.6.21"
 
 [tool.poetry.dev-dependencies]
 pyright = "^0.0.13"
