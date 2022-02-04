@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 # ------------------------------------------------
+# TODO
+#
+# - Add option to specify folder or saving results
+
+# ------------------------------------------------
 # imports
 
 import csv
@@ -17,34 +22,159 @@ py_path = os.path.abspath(os.curdir)
 # paths to look for settings files (csv)
 settings_try_paths = (f"{py_path}/standard_settings.csv", "anabu/standard_settings.csv")
 
-# property: ["name of property in csv", "default value if not found", "type of value"]
+# property: ["name of property in csv", "default value if not found", "type of value", "explanation of variable"]
 # TODO Double-check target values
 settings_dict = {
-    "operator": ["operator", "undefined", str],
-    "sample_name": ["sample_name", "undefined", str],
-    "photo_file": ["photo_file", "undefined", str],
-    "target_Make": ["target_Make", None, str],
-    "target_model": ["target_Model", None, str],
-    "target_BrightnessValue": ["target_BrightnessValue", None, int],
-    "target_ExifImageWidth": ["target_ExifImageWidth", None, int],
-    "target_ExifImageHeight": ["target_ExifImageHeight", None, int],
-    "target_FocalLength": ["target_FocalLength", None, float],
-    "target_ExposureTime": ["target_ExposureTime", None, float],
-    "target_FNumber": ["target_FNumber", None, float],
-    "target_LensModel": ["target_LensModel", None, str],
-    "target_ISOSpeedRatings": ["target_ISOSpeedRatings", None, int],
-    "target_WhiteBalance": ["target_WhiteBalance", None, int],
-    "target_MeteringMode": ["target_MeteringMode", None, int],
-    "target_DigitalZoomRatio": ["target_DigitalZoomRatio", None, float],
-    "target_FocalLengthIn35mmFilm": ["target_FocalLengthIn35mmFilm", None, float],
-    "automask": ["automask", True, bool],
-    "mask_file": ["mask_file", None, str],
-    "mask_correction_x": ["mask_correction_x", 0, int],
-    "mask_correction_y": ["mask_correction_y", 0, int],
-    "mask_rotation_clockwise": ["mask_rotation_clockwise", 0, float],
-    "binarize_threshold": ["binarize_threshold", 150, int],
-    "crop_masked_photo": ["crop_masked_photo", True, bool],
-    "create_ppt": ["create_ppt", True, bool],
+    "operator": {
+        "variable": "operator",
+        "default_value": "undefined",
+        "type": str,
+        "parameter": "operator who conducted the analysis",
+    },
+    "sample_name": {
+        "variable": "sample_name",
+        "default_value": "undefined",
+        "type": str,
+        "parameter": "name of the analyzed sample",
+    },
+    "photo_file": {
+        "variable": "photo_file",
+        "default_value": "undefined",
+        "type": str,
+        "parameter": "path to the photo file (open dialog if not found)",
+    },
+    "target_Make": {
+        "variable": "target_Make",
+        "default_value": None,
+        "type": str,
+        "parameter": "requirement for camera maker",
+    },
+    "target_model": {
+        "variable": "target_Model",
+        "default_value": None,
+        "type": str,
+        "parameter": "requirement for camera model",
+    },
+    "target_BrightnessValue": {
+        "variable": "target_BrightnessValue",
+        "default_value": None,
+        "type": int,
+        "parameter": "requirement for brightness value of photo",
+    },
+    "target_ExifImageWidth": {
+        "variable": "target_ExifImageWidth",
+        "default_value": None,
+        "type": int,
+        "parameter": "requirement for photo width in pixels",
+    },
+    "target_ExifImageHeight": {
+        "variable": "target_ExifImageHeight",
+        "default_value": None,
+        "type": int,
+        "parameter": "requirement for photo height in pixels",
+    },
+    "target_FocalLength": {
+        "variable": "target_FocalLength",
+        "default_value": None,
+        "type": float,
+        "parameter": "requirement for focal length",
+    },
+    "target_ExposureTime": {
+        "variable": "target_ExposureTime",
+        "default_value": None,
+        "type": float,
+        "parameter": "requirement for exposure time",
+    },
+    "target_FNumber": {
+        "variable": "target_FNumber",
+        "default_value": None,
+        "type": float,
+        "parameter": "requirement for f number",
+    },
+    "target_LensModel": {
+        "variable": "target_LensModel",
+        "default_value": None,
+        "type": str,
+        "parameter": "requirement for lens model",
+    },
+    "target_ISOSpeedRatings": {
+        "variable": "target_ISOSpeedRatings",
+        "default_value": None,
+        "type": int,
+        "parameter": "rquirement for ISO value",
+    },
+    "target_WhiteBalance": {
+        "variable": "target_WhiteBalance",
+        "default_value": None,
+        "type": int,
+        "parameter": "requirement for white balance",
+    },
+    "target_MeteringMode": {
+        "variable": "target_MeteringMode",
+        "default_value": None,
+        "type": int,
+        "parameter": "requirement for metering mode",
+    },
+    "target_DigitalZoomRatio": {
+        "variable": "target_DigitalZoomRatio",
+        "default_value": None,
+        "type": float,
+        "parameter": "requirement for digital zoom ratio",
+    },
+    "target_FocalLengthIn35mmFilm": {
+        "variable": "target_FocalLengthIn35mmFilm",
+        "default_value": None,
+        "type": float,
+        "parameter": "requirement for focal length equivalent for 35 mm film",
+    },
+    "automask": {
+        "variable": "automask",
+        "default_value": True,
+        "type": bool,
+        "parameter": "use automask",
+    },
+    "mask_file": {
+        "variable": "mask_file",
+        "default_value": None,
+        "type": str,
+        "parameter": "path to mask file (open dialog if not found)",
+    },
+    "mask_correction_x": {
+        "variable": "mask_correction_x",
+        "default_value": 0,
+        "type": int,
+        "parameter": "correction for horizontal mask position in pixels",
+    },
+    "mask_correction_y": {
+        "variable": "mask_correction_y",
+        "default_value": 0,
+        "type": int,
+        "parameter": "correction for vertical mask position in pixels",
+    },
+    "mask_rotation_clockwise": {
+        "variable": "mask_rotation_clockwise",
+        "default_value": 0,
+        "type": float,
+        "parameter": "correction for rotation of mask file in degrees",
+    },
+    "binarize_threshold": {
+        "variable": "binarize_threshold",
+        "default_value": 150,
+        "type": int,
+        "parameter": "threshold for photo binarization (0-254)",
+    },
+    "crop_masked_photo": {
+        "variable": "crop_masked_photo",
+        "default_value": True,
+        "type": bool,
+        "parameter": "auto-crop photo to non-masked area?",
+    },
+    "create_ppt": {
+        "variable": "create_ppt",
+        "default_value": True,
+        "type": bool,
+        "parameter": "auto-create pptx file with results?",
+    },
 }
 
 # ------------------------------------------------
@@ -79,27 +209,25 @@ class results:
 
     def __init__(self):
         """
-        Initializes empty array with header for results as attribute 'results_data'.
+        Initializes list of dicts with header for results as attribute 'results_data'.
         The first item is the variable for the parameter (as a string), the second
         item is the explanation. The third item is the value of the parameter.
         """
-        self.results_data = [["parameter", "variable", "value"]]
+        self.results_data = [
+            {"variable": "variable", "parameter": "parameter", "value": "value"}
+        ]
 
-    def add_results(self, *results: list):
+    def add_result(self, variable: str, parameter: str, value):
         """Adds results entries (3-item lists) to attribute 'results_data'."""
-        for result in results:
-            if (
-                type(result) == list
-                and len(result) == 3
-                and type(result[0]) == str
-                and type(result[1]) == str
-            ):
-                self.results_data.append(result)
-            else:
-                logging.warning(
-                    "Can only add a 3-item list in which the first two items are strings.\n"
-                    f"Could not add {result} to results."
-                )
+        if type("variable") == str and type("parameter") == str:
+            self.results_data.append(
+                {"variable": variable, "parameter": parameter, "value": value}
+            )
+        else:
+            logging.warning(
+                f'The first two parameters "variable" and "parameter" need to be strings.\n'
+                f"Could not add result."
+            )
 
     # FIXME finalize function
     def export_csv(self, filename):
@@ -130,34 +258,62 @@ class settings:
         for num, property in enumerate(expected_settings.values()):
             corresponding_key = list(expected_settings.keys())[num]
             propertyitem = next(
-                (item for item in property_list if item["property"] == property[0]),
+                (
+                    item
+                    for item in property_list
+                    if item["property"] == property["variable"]
+                ),
                 None,
             )
             if propertyitem:
                 if propertyitem["value"] in ["None", "", '""', "''", "-", "---"]:
-                    setattr(self, corresponding_key, None)
+                    setattr(
+                        self,
+                        corresponding_key,
+                        {
+                            "variable": property["variable"],
+                            "parameter": property["parameter"],
+                            "value": None,
+                        },
+                    )
                     logging.info(
-                        f'Setting for "{property[0]}" found. Value set to "{None}".'
+                        f'Setting for "{property["variable"]}" found. Value set to "{None}".'
                     )
                 else:
                     # set datatype
                     try:
-                        attr_type = property[2](propertyitem["value"])
-                        setattr(self, corresponding_key, attr_type)
+                        attr_type = property["type"](propertyitem["value"])
+                        setattr(
+                            self,
+                            corresponding_key,
+                            {
+                                "variable": property["variable"],
+                                "parameter": property["parameter"],
+                                "value": attr_type,
+                            },
+                        )
                         logging.info(
-                            f'Setting for "{property[0]}" found. '
+                            f'Setting for "{property["variable"]}" found. '
                             f"Value set to \"{propertyitem['value']}\"."
                         )
                     except:
-                        setattr(self, corresponding_key, property[1])
+                        setattr(
+                            self,
+                            corresponding_key,
+                            {
+                                "variable": property["variable"],
+                                "parameter": property["parameter"],
+                                "value": property["default_value"],
+                            },
+                        )
                         logging.warning(
-                            f"Setting for \"{property[0]}\" found: \"{propertyitem['value']}\",\n"
-                            f'\tbut could not be converted to expected type "{property[2]}". Setting to default value of "{property[1]}".'
+                            f"Setting for \"{property['variable']}\" found: \"{propertyitem['value']}\",\n"
+                            f'\tbut could not be converted to expected type "{property["type"]}". Setting to default value of "{property["default_value"]}".'
                         )
             else:
-                setattr(self, corresponding_key, property[1])
+                setattr(self, corresponding_key, property["default_value"])
                 logging.warning(
-                    f'Setting for "{property[0]}" expected but not found. Setting to default value of "{property[1]}".'
+                    f'Setting for "{property["variable"]}" expected but not found. Setting to default value of "{property["default_value"]}".'
                 )
         logging.info(f"All user settings read from {filename}.")
 
@@ -197,7 +353,9 @@ class settings:
     # FIXME finalize function
     def settings_to_results(self, results: results):
         """Saves the currently set settings to results object (for documentation)."""
-        pass
+        for attribute in dir(self):
+            if not attribute[0] == "_":
+                results.add_result(attribute, 2, 3)
 
     # FIXME finalize function
     @staticmethod
@@ -220,6 +378,8 @@ def run_interface() -> None:
     results_list = results()
     settings_path = settings.set_settings_path(*settings_try_paths)
     user_settings = settings(settings_path, settings_dict)
+    user_settings.settings_to_results(results_list)
+    print(results_list.results_data)
 
 
 # ------------------------------------------------
