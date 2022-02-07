@@ -29,7 +29,7 @@
 "mask_correction_y", 0, "Mask correction along y-axis in pixels"
 "mask_rotation_clockwise", 0, "Mask rotation clockwise in deg"
 
-"binarize_threshold", "Peter", Threshold for binarizing photo file"
+"binarize_threshold", "Peter", "Threshold for binarizing photo file"
 
 "crop_masked_photo", True, "If true, crop photo to nonmasked rectangle."
 "create_ppt", True, "If true, create ppt with main results."

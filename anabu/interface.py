@@ -12,6 +12,7 @@ import csv
 import logging
 import os
 from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
+from shutil import copy2
 
 # ------------------------------------------------
 # variables
@@ -209,29 +210,43 @@ class results:
 
     def __init__(self):
         """
-        Initializes list of dicts with header for results as attribute 'results_data'.
-        The first item is the variable for the parameter (as a string), the second
-        item is the explanation. The third item is the value of the parameter.
+        Initializes an empty object to save all results as attributes with dictionaries as the values.
+        The attribute "attribute_list" holds all set results.
         """
-        self.results_data = [
-            {"variable": "variable", "parameter": "parameter", "value": "value"}
-        ]
+        self.attribute_list = []
 
     def add_result(self, variable: str, parameter: str, value):
         """Adds results entries (3-item lists) to attribute 'results_data'."""
         if type("variable") == str and type("parameter") == str:
-            self.results_data.append(
-                {"variable": variable, "parameter": parameter, "value": value}
+            setattr(
+                self,
+                variable,
+                {"variable": variable, "parameter": parameter, "value": value},
             )
+            self.__dict__["attribute_list"].append(variable)
         else:
             logging.warning(
                 f'The first two parameters "variable" and "parameter" need to be strings.\n'
                 f"Could not add result."
             )
 
-    # FIXME finalize function
-    def export_csv(self, filename):
-        pass
+    def export_csv(self, path):
+        """Saves a CSV file with all results."""
+        csv_header = ["variable", "parameter", "value"]
+        with open(path, "w", encoding="UTF8", newline="") as f:
+            writer = csv.writer(f, delimiter=",")
+            writer.writerow(csv_header)
+            for attribute in self.__dict__["attribute_list"]:
+                writer.writerow(
+                    [
+                        self.__dict__[attribute]["variable"],
+                        self.__dict__[attribute]["parameter"],
+                        self.__dict__[attribute]["value"]
+                        if self.__dict__[attribute]["value"]
+                        else "not set",
+                    ]
+                )
+        logging.info(f'CSV file with results saved: "{path}".')
 
 
 class settings:
@@ -240,6 +255,8 @@ class settings:
     def __init__(self, filename: str, expected_settings: dict):
         """Read csv file with user settings and set them as attributes."""
         logging.info(f"Trying to read user settings from {filename}.")
+        # This list holds the set attributes.
+        self.attribute_list = []
         # get list of dicts from csv file
         property_list = []
         try:
@@ -267,8 +284,7 @@ class settings:
             )
             if propertyitem:
                 if propertyitem["value"] in ["None", "", '""', "''", "-", "---"]:
-                    setattr(
-                        self,
+                    self.set_sett_attribute(
                         corresponding_key,
                         {
                             "variable": property["variable"],
@@ -283,8 +299,7 @@ class settings:
                     # set datatype
                     try:
                         attr_type = property["type"](propertyitem["value"])
-                        setattr(
-                            self,
+                        self.set_sett_attribute(
                             corresponding_key,
                             {
                                 "variable": property["variable"],
@@ -297,8 +312,7 @@ class settings:
                             f"Value set to \"{propertyitem['value']}\"."
                         )
                     except:
-                        setattr(
-                            self,
+                        self.set_sett_attribute(
                             corresponding_key,
                             {
                                 "variable": property["variable"],
@@ -308,14 +322,30 @@ class settings:
                         )
                         logging.warning(
                             f"Setting for \"{property['variable']}\" found: \"{propertyitem['value']}\",\n"
-                            f'\tbut could not be converted to expected type "{property["type"]}". Setting to default value of "{property["default_value"]}".'
+                            f'\tbut could not be converted to expected type "{property["type"]}". '
+                            f'Setting to default value of "{property["default_value"]}".'
                         )
             else:
-                setattr(self, corresponding_key, property["default_value"])
+                self.set_sett_attribute(
+                    corresponding_key,
+                    {
+                        "variable": property["variable"],
+                        "parameter": property["parameter"],
+                        "value": property["default_value"],
+                    },
+                )
                 logging.warning(
                     f'Setting for "{property["variable"]}" expected but not found. Setting to default value of "{property["default_value"]}".'
                 )
         logging.info(f"All user settings read from {filename}.")
+
+    def set_sett_attribute(self, attribute: str, value: dict):
+        """
+        Sets a setting as an attribute of the object
+        and adds to list of attributes "attribute_list".
+        """
+        setattr(self, attribute, value)
+        self.__dict__["attribute_list"].append(attribute)
 
     @staticmethod
     def set_settings_path(*paths):
@@ -350,25 +380,41 @@ class settings:
                 "Correct csv file with settings not defined via dialog. Exiting."
             )
 
-    # FIXME finalize function
     def settings_to_results(self, results: results):
         """Saves the currently set settings to results object (for documentation)."""
-        for attribute in dir(self):
-            if not attribute[0] == "_":
-                results.add_result(attribute, 2, 3)
+        for attribute in self.__dict__["attribute_list"]:
+            results.add_result(
+                self.__dict__[attribute]["variable"],
+                "user settings: " + self.__dict__[attribute]["parameter"],
+                self.__dict__[attribute]["value"],
+            )
 
-    # FIXME finalize function
     @staticmethod
-    def create_settings_csv(expected_settings: dict):
-        """"""
-        pass
+    def create_default_settings_csv(expected_settings: dict, path: str):
+        """Creates a csv file with default settings for the user to modify."""
+        csv_header = ["property", "value", "explanation"]
+        with open(path, "w", encoding="UTF8", newline="") as f:
+            writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC, delimiter=",")
+            writer.writerow(csv_header)
+            for entry in expected_settings.values():
+                writer.writerow(
+                    [entry["variable"], entry["default_value"], entry["parameter"]]
+                )
+        logging.info(f'CSV file with default values created: "{path}".')
 
 
-# FIXME delete this block
-# results_list = results()
-# print(type(results_list) == results)
-# results_list.add_results(*(["operator of the evaluation", "17", "13"],["operator of the evaluation", "17", "13"]))
-# print(results_list.results_data)
+def get_folder(path: str) -> str:
+    """Returns path stripped of the file extension."""
+    return os.path.splitext(path)[0]
+
+
+# FIXME finalize/test function
+def end_analysis(path):
+    """Function to be called at the end. Copies logfile to path."""
+    logging.info("----------------------------------")
+    logging.info("Evaluation completed successfully!")
+    logging.info("----------------------------------")
+    copy2("log/logfile.log", path)
 
 
 def run_interface() -> None:
@@ -379,7 +425,6 @@ def run_interface() -> None:
     settings_path = settings.set_settings_path(*settings_try_paths)
     user_settings = settings(settings_path, settings_dict)
     user_settings.settings_to_results(results_list)
-    print(results_list.results_data)
 
 
 # ------------------------------------------------
