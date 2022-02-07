@@ -1,0 +1,26 @@
+variable,parameter,value
+operator,user settings: operator who conducted the analysis,Bastian
+sample_name,user settings: name of the analyzed sample,W4/1518
+photo_file,user settings: path to the photo file (open dialog if not found),C:/Users/Ebeling/Desktop/2021-12-17 Fotos/DSC00045.JPG
+target_Make,user settings: requirement for camera maker,SONY
+target_Model,user settings: requirement for camera model,ILCE-7M2
+target_BrightnessValue,user settings: requirement for brightness value of photo,not set
+target_ExifImageWidth,user settings: requirement for photo width in pixels,6000
+target_ExifImageHeight,user settings: requirement for photo height in pixels,4000
+target_FocalLength,user settings: requirement for focal length,28.0
+target_ExposureTime,user settings: requirement for exposure time,not set
+target_FNumber,user settings: requirement for f number,not set
+target_LensModel,user settings: requirement for lens model,not set
+target_ISOSpeedRatings,user settings: rquirement for ISO value,not set
+target_WhiteBalance,user settings: requirement for white balance,not set
+target_MeteringMode,user settings: requirement for metering mode,not set
+target_DigitalZoomRatio,user settings: requirement for digital zoom ratio,not set
+target_FocalLengthIn35mmFilm,user settings: requirement for focal length equivalent for 35 mm film,not set
+automask,user settings: use automask,True
+mask_file,user settings: path to mask file (open dialog if not found),not set
+mask_correction_x,user settings: correction for horizontal mask position in pixels,not set
+mask_correction_y,user settings: correction for vertical mask position in pixels,not set
+mask_rotation_clockwise,user settings: correction for rotation of mask file in degrees,not set
+binarize_threshold,user settings: threshold for photo binarization (0-254),150
+crop_masked_photo,user settings: auto-crop photo to non-masked area?,True
+create_ppt,user settings: auto-create pptx file with results?,True
