@@ -360,7 +360,7 @@ class settings:
                 csvfile.close()
                 logging.info(f'File found: "{path}".')
                 return path
-            except:
+            except FileNotFoundError:
                 logging.info(f'Could not find "{path}".')
         logging.info("Trying to select correct csv file with settings via file dialog.")
         dialog_path = filedialog.askopenfilename(
@@ -372,7 +372,7 @@ class settings:
             csvfile.close()
             logging.info(f'Selected file with dialog: "{dialog_path}".')
             return dialog_path
-        except:
+        except Exception:
             logging.exception(
                 "Correct csv file with settings not defined via dialog. Exiting."
             )

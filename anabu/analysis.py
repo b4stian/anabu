@@ -5,7 +5,6 @@
 
 import anabu.interface as interface
 
-
 # ------------------------------------------------
 # parameters
 
@@ -26,6 +25,7 @@ def run():
     )
     interface.logging.info("Main imports successful.")
     interface.run_interface()
+    # interface.end_analysis(path)
 
 
 # ------------------------------------------------
