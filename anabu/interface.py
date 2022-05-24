@@ -187,7 +187,7 @@ def set_up_logging():
     logging.basicConfig(
         handlers=[
             logging.FileHandler("log/logfile.log", mode="w"),
-            # logging.StreamHandler(), # TODO add?
+            logging.StreamHandler(), # to print to terminal
         ],
         format=("%(levelname)s (%(asctime)s): %(message)s"),
         datefmt="%Y-%m-%d %H:%M:%S",
