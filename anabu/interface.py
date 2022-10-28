@@ -4,6 +4,7 @@
 # TODO
 #
 # - Add option to specify folder or saving results
+# - Add possibility to specify folder and image type for batch evaluation
 
 # ------------------------------------------------
 # imports
