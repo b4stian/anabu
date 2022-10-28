@@ -17,7 +17,7 @@ from shutil import copy2
 # ------------------------------------------------
 # variables
 
-# path to file
+# path to this file
 py_path = os.path.abspath(os.curdir)
 
 # paths to look for settings files (csv)
@@ -187,7 +187,7 @@ def set_up_logging():
     logging.basicConfig(
         handlers=[
             logging.FileHandler("log/logfile.log", mode="w"),
-            logging.StreamHandler(), # to print to terminal
+            logging.StreamHandler(),  # to print to terminal
         ],
         format=("%(levelname)s (%(asctime)s): %(message)s"),
         datefmt="%Y-%m-%d %H:%M:%S",
