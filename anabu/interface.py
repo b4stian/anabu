@@ -4,6 +4,7 @@
 # TODO
 #
 # - Add option to specify folder or saving results
+# - Add possibility to specify folder and image type for batch evaluation
 
 # ------------------------------------------------
 # imports
@@ -17,7 +18,7 @@ from shutil import copy2
 # ------------------------------------------------
 # variables
 
-# path to file
+# path to this file
 py_path = os.path.abspath(os.curdir)
 
 # paths to look for settings files (csv)
