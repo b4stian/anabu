@@ -185,9 +185,11 @@ settings_dict = {
 
 def set_up_logging():
     """logging setup"""
+    log_filename = "log/logfile.log"
+    os.makedirs(os.path.dirname(log_filename), exist_ok=True)
     logging.basicConfig(
         handlers=[
-            logging.FileHandler("log/logfile.log", mode="w"),
+            logging.FileHandler(log_filename, mode="w"),
             logging.StreamHandler(), # to print to terminal
         ],
         format=("%(levelname)s (%(asctime)s): %(message)s"),
