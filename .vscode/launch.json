@@ -8,7 +8,7 @@
             "name": "Python: anabu",
             "type": "python",
             "request": "launch",
-            "python": "python3",
+            "python": "python",
             "args": [
                 "-m",
             ],

@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
+is_main = __name__ == "__main__"
+
 # ------------------------------------------------
 # imports
 
-import anabu.interface as interface
+if is_main:
+    import interface
+else:
+    import anabu.interface as interface
 
 # ------------------------------------------------
 # parameters
@@ -30,8 +35,6 @@ def run():
 
 # ------------------------------------------------
 # executed code
-
-is_main = __name__ == "__main__"
 
 if is_main:
     run()

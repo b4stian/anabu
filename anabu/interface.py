@@ -3,13 +3,18 @@
 # ------------------------------------------------
 # TODO
 #
+# - Add __repr__ to classes.
 # - Add option to specify folder or saving results
 # - Add possibility to specify folder and image type for batch evaluation
+
+# This construction is needed so that python.el doesn't ignore it.
+is_main = __name__ == "__main__"
 
 # ------------------------------------------------
 # imports
 
 import csv
+from datetime import datetime
 import logging
 import os
 from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
@@ -17,6 +22,16 @@ from shutil import copy2
 
 # ------------------------------------------------
 # variables
+
+# date string for filenames
+date_string = (
+    str(datetime.now().year)
+    + "-"
+    + str(datetime.now().month)
+    + "-"
+    + str(datetime.now().day)
+    + "_"
+)
 
 # path to this file
 py_path = os.path.abspath(os.curdir)
@@ -183,7 +198,7 @@ settings_dict = {
 # function/class definitions
 
 
-def set_up_logging():
+def set_up_logging() -> None:
     """logging setup"""
     log_filename = "log/logfile.log"
     os.makedirs(os.path.dirname(log_filename), exist_ok=True)
@@ -199,7 +214,7 @@ def set_up_logging():
     )
 
 
-def set_up_tkinter():
+def set_up_tkinter() -> None:
     """set up tkinter"""
     root = Tk()
     # hides small tkinter window
@@ -208,17 +223,17 @@ def set_up_tkinter():
     root.attributes("-topmost", True)
 
 
-class results:
+class Results:
     """Object to store and export all results."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes an empty object to save all results as attributes with dictionaries as the values.
         The attribute "attribute_list" holds all set results.
         """
         self.attribute_list = []
 
-    def add_result(self, variable: str, parameter: str, value):
+    def add_result(self, variable: str, parameter: str, value) -> None:
         """Adds results entries (3-item lists) to attribute 'results_data'."""
         if type("variable") == str and type("parameter") == str:
             setattr(
@@ -233,7 +248,20 @@ class results:
                 f"Could not add result."
             )
 
-    def export_csv(self, path):
+    def settings_to_results(self, settings) -> None:
+        """Saves the currently set settings to results object (for documentation)."""
+        try:
+            for attribute in settings.__dict__["attribute_list"]:
+                self.add_result(
+                    settings.__dict__[attribute]["variable"],
+                    "user settings: " + settings.__dict__[attribute]["parameter"],
+                    settings.__dict__[attribute]["value"],
+                )
+            logging.info(f"All settings added to results.")
+        except:
+                logging.warning(f"Settings could not be added to results.")
+
+    def export_csv(self, path:str) -> None:
         """Saves a CSV file with all results."""
         csv_header = ["variable", "parameter", "value"]
         with open(path, "w", encoding="UTF8", newline="") as f:
@@ -252,10 +280,10 @@ class results:
         logging.info(f'CSV file with results saved: "{path}".')
 
 
-class settings:
+class Settings:
     """Object with user settings from csv file"""
 
-    def __init__(self, filename: str, expected_settings: dict):
+    def __init__(self, filename: str, expected_settings: dict) -> None:
         """Read csv file with user settings and set them as attributes."""
         logging.info(f"Trying to read user settings from {filename}.")
         # This list holds the set attributes.
@@ -342,7 +370,7 @@ class settings:
                 )
         logging.info(f"All user settings read from {filename}.")
 
-    def set_sett_attribute(self, attribute: str, value: dict):
+    def set_sett_attribute(self, attribute: str, value: dict) -> None:
         """
         Sets a setting as an attribute of the object
         and adds to list of attributes "attribute_list".
@@ -351,7 +379,7 @@ class settings:
         self.__dict__["attribute_list"].append(attribute)
 
     @staticmethod
-    def set_settings_path(*paths):
+    def set_settings_path(*paths) -> None:
         """
         Returns the path for the settings file.
         First by trying arguments, then by opening file dialog.
@@ -383,17 +411,8 @@ class settings:
                 "Correct csv file with settings not defined via dialog. Exiting."
             )
 
-    def settings_to_results(self, results: results):
-        """Saves the currently set settings to results object (for documentation)."""
-        for attribute in self.__dict__["attribute_list"]:
-            results.add_result(
-                self.__dict__[attribute]["variable"],
-                "user settings: " + self.__dict__[attribute]["parameter"],
-                self.__dict__[attribute]["value"],
-            )
-
     @staticmethod
-    def create_default_settings_csv(expected_settings: dict, path: str):
+    def create_default_settings_csv(expected_settings: dict, path: str) -> None:
         """Creates a csv file with default settings for the user to modify."""
         csv_header = ["property", "value", "explanation"]
         with open(path, "w", encoding="UTF8", newline="") as f:
@@ -412,7 +431,7 @@ def get_folder(path: str) -> str:
 
 
 # FIXME finalize/test function
-def end_analysis(path):
+def end_analysis(path:str) -> None:
     """Function to be called at the end. Copies logfile to path."""
     logging.info("----------------------------------")
     logging.info("Evaluation completed successfully!")
@@ -424,18 +443,17 @@ def run_interface() -> None:
     """Execute the interface functions."""
     # set_up_logging() needs to be executed individually at the very start
     set_up_tkinter()
-    results_list = results()
-    settings_path = settings.set_settings_path(*settings_try_paths)
-    user_settings = settings(settings_path, settings_dict)
-    user_settings.settings_to_results(results_list)
+    results_list = Results()
+    settings_path = Settings.set_settings_path(*settings_try_paths)
+    user_settings = Settings(settings_path, settings_dict)
+    results_list.settings_to_results(user_settings)
 
 
 # ------------------------------------------------
 # executions
 
-# This construction is needed so that python.el doesn't ignore it.
-is_main = __name__ == "__main__"
+set_up_logging()
+run_interface()
 
 if is_main:
-    set_up_logging()
-    run_interface()
+    pass
