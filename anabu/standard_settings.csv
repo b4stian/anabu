@@ -2,9 +2,9 @@
 
 "operator", "Bastian", "Name of the operator executing the script for documentation."
 
-"sample_name", "W4/1518", "Sample name. Will use name of photo file if not specified."
+"sample_name", "W4/1518", "Sample name. Will use file name of photo if not specified."
 
-"photo_file", "C:/Users/Ebeling/Desktop/2021-12-17 Fotos/DSC00045.JPG", "Path to the photo file. If not found, will use dialog for selection."
+"photo_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Desktop\2021-12-17 Fotos\DSC00045.JPG", "Path to the photo file. If not found, will use dialog for selection."
 
 "target_Make", "SONY", "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_Model", "ILCE-7M2", "Target EXIF tag for photo file. Will not run if different tags are found."

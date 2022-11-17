@@ -1,4 +1,5 @@
 * Open actions
+** Implement batch processing of whole folders
 ** TODO create class for photo file
  - __init__ is read photo file as defined in interface
 ** TODO create class for mask file

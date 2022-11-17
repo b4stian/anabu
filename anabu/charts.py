@@ -98,6 +98,7 @@ palette_list = [
 # ------------------------------------------------
 # function/class definitions
 
+
 class Kurascheme:
     """Kuraray color scheme."""
 

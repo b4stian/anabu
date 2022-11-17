@@ -33,6 +33,9 @@ date_string = (
     + "_"
 )
 
+# filename for log
+log_file = "log/logfile.log"
+
 # path to this file
 py_path = os.path.abspath(os.curdir)
 
@@ -199,13 +202,15 @@ settings_dict = {
 
 
 def set_up_logging() -> None:
-    """logging setup"""
-    log_filename = "log/logfile.log"
+    """
+    Set up logging (to file and print).
+    """
+    log_filename = log_file
     os.makedirs(os.path.dirname(log_filename), exist_ok=True)
     logging.basicConfig(
         handlers=[
             logging.FileHandler(log_filename, mode="w"),
-            logging.StreamHandler(), # to print to terminal
+            logging.StreamHandler(),  # to print to terminal
         ],
         format=("%(levelname)s (%(asctime)s): %(message)s"),
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -215,7 +220,9 @@ def set_up_logging() -> None:
 
 
 def set_up_tkinter() -> None:
-    """set up tkinter"""
+    """
+    Set up tkinter.
+    """
     root = Tk()
     # hides small tkinter window
     root.withdraw()
@@ -442,18 +449,19 @@ def end_analysis(path:str) -> None:
 def run_interface() -> None:
     """Execute the interface functions."""
     # set_up_logging() needs to be executed individually at the very start
+    global user_settings, results
+    
     set_up_tkinter()
-    results_list = Results()
+    results = Results()
     settings_path = Settings.set_settings_path(*settings_try_paths)
     user_settings = Settings(settings_path, settings_dict)
-    results_list.settings_to_results(user_settings)
+    results.settings_to_results(user_settings)
 
 
 # ------------------------------------------------
 # executions
 
 set_up_logging()
-run_interface()
 
 if is_main:
-    pass
+    run_interface()
