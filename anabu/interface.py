@@ -13,6 +13,7 @@ is_main = __name__ == "__main__"
 # ------------------------------------------------
 # imports
 
+from collections.abc import Iterable
 import csv
 from datetime import datetime
 import logging
@@ -153,41 +154,59 @@ settings_dict = {
         "type": bool,
         "parameter": "use automask",
     },
+    "automask_save": {
+        "variable": "automask_save",
+        "default_value": True,
+        "type": bool,
+        "parameter": "save automask",
+    },
+    "automask_grow": {
+        "variable": "automask",
+        "default_value": 0.65,
+        "type": float,
+        "parameter": "growing of automask (0.5 <= grow < 1)",
+    },
+    "binarize_auto": {
+        "variable": "binarize_auto",
+        "default_value": True,
+        "type": bool,
+        "parameter": "automatically perform binarization in automask",
+    },
+    "binarize_threshold": {
+        "variable": "binarize_threshold",
+        "default_value": 10,
+        "type": int,
+        "parameter": "threshold for photo binarization (0-254) in automask if binarize_auto = False",
+    },
     "mask_file": {
         "variable": "mask_file",
         "default_value": None,
         "type": str,
         "parameter": "path to mask file (open dialog if not found)",
     },
-    "mask_correction_x": {
-        "variable": "mask_correction_x",
-        "default_value": 0,
-        "type": int,
-        "parameter": "correction for horizontal mask position in pixels",
+    "maskview": {
+        "variable": "maskview",
+        "default_value": None,
+        "type": str,
+        "parameter": "don't save maskview (None), save maskview ('save') or prompt user if ok ('prompt)",
     },
-    "mask_correction_y": {
-        "variable": "mask_correction_y",
-        "default_value": 0,
-        "type": int,
-        "parameter": "correction for vertical mask position in pixels",
-    },
-    "mask_rotation_clockwise": {
-        "variable": "mask_rotation_clockwise",
-        "default_value": 0,
-        "type": float,
-        "parameter": "correction for rotation of mask file in degrees",
-    },
-    "binarize_threshold": {
-        "variable": "binarize_threshold",
-        "default_value": 150,
-        "type": int,
-        "parameter": "threshold for photo binarization (0-254)",
-    },
-    "crop_masked_photo": {
-        "variable": "crop_masked_photo",
+    "autocrop": {
+        "variable": "autocrop",
         "default_value": True,
         "type": bool,
-        "parameter": "auto-crop photo to non-masked area?",
+        "parameter": "automatically crop photo to patch based on mask when True",
+    },
+    "autocrop_margin": {
+        "variable": "autocrop_margin",
+        "default_value": 40,
+        "type": int,
+        "parameter": "margin for autocrop in pixels",
+    },
+    "autocrop_save": {
+        "variable": "autocrop_save",
+        "default_value": None,
+        "type": str,
+        "parameter": "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')",
     },
     "create_ppt": {
         "variable": "create_ppt",
@@ -266,9 +285,9 @@ class Results:
                 )
             logging.info(f"All settings added to results.")
         except:
-                logging.warning(f"Settings could not be added to results.")
+            logging.warning(f"Settings could not be added to results.")
 
-    def export_csv(self, path:str) -> None:
+    def export_csv(self, path: str) -> None:
         """Saves a CSV file with all results."""
         csv_header = ["variable", "parameter", "value"]
         with open(path, "w", encoding="UTF8", newline="") as f:
@@ -331,12 +350,37 @@ class Settings:
                         },
                     )
                     logging.info(
-                        f'Setting for "{property["variable"]}" found. Value set to "{None}".'
+                        f'Setting for "{property["variable"]}" found. Value set to {None}.'
                     )
                 else:
                     # set datatype
                     try:
-                        attr_type = property["type"](propertyitem["value"])
+                        if property["type"] == bool:
+                            if propertyitem["value"] in {
+                                "True",
+                                "1",
+                                "yes",
+                                "on",
+                                "enabled",
+                            }:
+                                attr_type = True
+                            elif propertyitem["value"] in {
+                                "False",
+                                "0",
+                                "no",
+                                "off",
+                                "disabled",
+                            }:
+                                attr_type = False
+                            else:
+                                logging.exception(
+                                    f"Cannot interpret input for {property['variable']} in settings file."
+                                )
+                                raise ValueError(
+                                    f"Cannot interpret input for {property['variable']} in settings file."
+                                )
+                        else:
+                            attr_type = property["type"](propertyitem["value"])
                         self.set_sett_attribute(
                             corresponding_key,
                             {
@@ -347,7 +391,7 @@ class Settings:
                         )
                         logging.info(
                             f'Setting for "{property["variable"]}" found. '
-                            f"Value set to \"{propertyitem['value']}\"."
+                            f"Value set to {attr_type}."
                         )
                     except:
                         self.set_sett_attribute(
@@ -359,9 +403,9 @@ class Settings:
                             },
                         )
                         logging.warning(
-                            f"Setting for \"{property['variable']}\" found: \"{propertyitem['value']}\",\n"
+                            f"Setting for \"{property['variable']}\" found: {propertyitem['value']},\n"
                             f'\tbut could not be converted to expected type "{property["type"]}". '
-                            f'Setting to default value of "{property["default_value"]}".'
+                            f'Setting to default value of {property["default_value"]}.'
                         )
             else:
                 self.set_sett_attribute(
@@ -373,7 +417,7 @@ class Settings:
                     },
                 )
                 logging.warning(
-                    f'Setting for "{property["variable"]}" expected but not found. Setting to default value of "{property["default_value"]}".'
+                    f'Setting for "{property["variable"]}" expected but not found. Setting to default value of {property["default_value"]}.'
                 )
         logging.info(f"All user settings read from {filename}.")
 
@@ -437,8 +481,49 @@ def get_folder(path: str) -> str:
     return os.path.splitext(path)[0]
 
 
+def progressBar(
+    iterable: Iterable,
+    prefix: str = "",
+    suffix: str = "",
+    decimals: int = 1,
+    length: int = 100,
+    fill: str = "█",
+    printEnd: str = "\r",
+) -> None:
+    """
+    Call in a loop to create terminal progress bar
+
+    Args:
+        iterable (Iterable): Iterable object
+        prefix (str, optional): Prefix string. Defaults to ''.
+        suffix (str, optional): Suffix string. Defaults to ''.
+        decimals (int, optional): Positive number of decimals in percent complete. Defaults to 1.
+        length (int, optional): Character length of bar. Defaults to 100.
+        fill (str, optional): Bar fill character. Defaults to '█'.
+        printEnd (str, optional): End character. Defaults to "\r".
+    """
+    total = len(iterable)
+    # Progress Bar Printing Function
+    def printProgressBar(iteration):
+        percent = ("{0:." + str(decimals) + "f}").format(
+            100 * (iteration / float(total))
+        )
+        filledLength = int(length * iteration // total)
+        bar = fill * filledLength + "-" * (length - filledLength)
+        print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)
+
+    # Initial call
+    printProgressBar(0)
+    # Update progress bar
+    for i, item in enumerate(iterable):
+        yield item
+        printProgressBar(i + 1)
+    # Print new line on complete
+    print()
+
+
 # FIXME finalize/test function
-def end_analysis(path:str) -> None:
+def end_analysis(path: str) -> None:
     """Function to be called at the end. Copies logfile to path."""
     logging.info("----------------------------------")
     logging.info("Evaluation completed successfully!")
@@ -450,7 +535,7 @@ def run_interface() -> None:
     """Execute the interface functions."""
     # set_up_logging() needs to be executed individually at the very start
     global user_settings, results
-    
+
     set_up_tkinter()
     results = Results()
     settings_path = Settings.set_settings_path(*settings_try_paths)

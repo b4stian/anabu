@@ -22,14 +22,17 @@
 "target_FocalLengthIn35mmFilm", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 
 "automask", True, "If True use automask, if False, try mask_file, then use dialog for selection."
+"automask_save", True, "save automask"
+"automask_grow", 0.65, "growing of automask (0.5 <= grow < 1)"
+
+"binarize_auto", False,"automatically perform binarization in automask"
+"binarize_threshold", 100, "threshold for photo binarization (0-254) in automask if binarize_auto = False"
+"maskview", None, "don't save maskview (None), save maskview ('save') or prompt user if ok ('prompt)"
 
 "mask_file", "", "Path to the mask file (if automask = False). If not found, will use dialog for selection."
 
-"mask_correction_x", 0, "Mask correction along x-axis in pixels"
-"mask_correction_y", 0, "Mask correction along y-axis in pixels"
-"mask_rotation_clockwise", 0, "Mask rotation clockwise in deg"
+"autocrop", True, "automatically crop photo to patch based on mask when True"
+"autocrop_margin", 40, "margin for autocrop in pixels"
+"autocrop_save", "photo", "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')"
 
-"binarize_threshold", "Peter", "Threshold for binarizing photo file"
-
-"crop_masked_photo", True, "If true, crop photo to nonmasked rectangle."
 "create_ppt", True, "If true, create ppt with main results."
