@@ -13,13 +13,14 @@ is_main = __name__ == "__main__"
 # ------------------------------------------------
 # imports
 
-from collections.abc import Iterable
 import csv
-from datetime import datetime
 import logging
 import os
-from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
+from collections.abc import Generator, Iterable
+from datetime import datetime
 from shutil import copy2
+from tkinter import (Tk, filedialog,  # FIXME messagebox needed in this file?
+                     messagebox)
 
 # ------------------------------------------------
 # variables
@@ -430,7 +431,7 @@ class Settings:
         self.__dict__["attribute_list"].append(attribute)
 
     @staticmethod
-    def set_settings_path(*paths) -> None:
+    def set_settings_path(*paths) -> str:
         """
         Returns the path for the settings file.
         First by trying arguments, then by opening file dialog.
@@ -489,7 +490,7 @@ def progressBar(
     length: int = 100,
     fill: str = "█",
     printEnd: str = "\r",
-) -> None:
+) -> Generator:
     """
     Call in a loop to create terminal progress bar
 

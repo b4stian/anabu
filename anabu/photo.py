@@ -13,14 +13,16 @@ if is_main:
     import interface
 else:
     import anabu.interface as interface
-from datetime import datetime
-from PIL import Image as PIL_Image, ExifTags as PIL_ExifTags
-import os
-import skimage as sm
-from typing import Union
-import numpy as np
-import platform
 
+import os
+import platform
+from datetime import datetime
+from typing import Union
+
+import numpy as np
+import skimage as sm
+from PIL import ExifTags as PIL_ExifTags
+from PIL import Image as PIL_Image
 
 # ------------------------------------------------
 # variables
@@ -400,7 +402,7 @@ class Photo:
             parameter="creation date of mask file",
             value=self.mask_creation,
         )
-        self.mask_height, self.width = self.mask.shape[0], self.mask.shape[1]
+        self.mask_height, self.mask_width = self.mask.shape[0], self.mask.shape[1]
         if not (self.height == self.mask_height) and (self.width == self.mask_width):
             logging.interface.exception(
                 f"Dimensions of photo and mask file do not coincide ({(self.width, self.height)} vs {(self.mask_width, self.mask_height)})."
@@ -689,8 +691,8 @@ class Photo:
         Args:
             photo (_type_): _description_
             margin (int, optional): _description_. Defaults to 40.
-            save (str, optional): don't save (None), save cropped photo ('photo'), 
-                save cropped_masked_photo ('masked'), 
+            save (str, optional): don't save (None), save cropped photo ('photo'),
+                save cropped_masked_photo ('masked'),
                 save photo, mask, cropped mask ('all')
 
         Returns:
@@ -847,19 +849,43 @@ class Photo:
         self.masked_cropped_photo = self.cropped_photo * np.expand_dims(
             self.cropped_mask, 2
         )
-        if save not in {None, 'photo', 'masked', 'all'}:
-            interface.logging.exception(f"Possible values for 'save' are None, 'photo', 'masked', and 'all'.")
-            raise ValueError(f"Possible values for 'save' are None, 'photo', 'masked', and 'all'.")
-        if save == 'photo':
+        if save not in {None, "photo", "masked", "all"}:
+            interface.logging.exception(
+                f"Possible values for 'save' are None, 'photo', 'masked', and 'all'."
+            )
+            raise ValueError(
+                f"Possible values for 'save' are None, 'photo', 'masked', and 'all'."
+            )
+        if save == "photo":
             self.save_image(self.cropped_photo, "cropped_photo")
-        if save == 'masked':
+        if save == "masked":
             self.save_image(self.masked_cropped_photo, "masked_cropped")
-        if save == 'all':
+        if save == "all":
             self.save_image(self.cropped_photo, "cropped_photo")
             self.save_image(self.masked_cropped_photo, "masked_cropped")
             self.save_image(self.cropped_mask, "cropped_mask")
         return self.masked_cropped_photo
 
+
+def run_photo() -> None:
+    """Execute the photo functions."""
+    global photo
+    photo = Photo(interface.user_settings.photo_file["value"])
+    photo.basic_attribs()
+    photo.check_exif()
+    photo.add_mask()
+    photo.orientation()
+    photo.rotate_photo_mask()
+    photo.maskview(output=interface.user_settings.maskview["value"])
+    photo.autocrop(
+        photo.photo,
+        margin=interface.user_settings.autocrop_margin["value"],
+        save=interface.user_settings.autocrop_save["value"],
+    )
+
+
+# ------------------------------------------------
+# executions
 
 if is_main:
     interface.run_interface()
@@ -870,4 +896,8 @@ if is_main:
     photo.orientation()
     photo.rotate_photo_mask()
     photo.maskview(output=interface.user_settings.maskview["value"])
-    photo.autocrop(photo.photo, margin=interface.user_settings.autocrop_margin["value"], save=interface.user_settings.autocrop_save["value"])
+    photo.autocrop(
+        photo.photo,
+        margin=interface.user_settings.autocrop_margin["value"],
+        save=interface.user_settings.autocrop_save["value"],
+    )
