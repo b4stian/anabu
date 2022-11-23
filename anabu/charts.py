@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ------------------------------------------------
-# variable
+# variables
 
 # conversion factor inch to cm
 CM = 0.3937007874
@@ -23,7 +23,7 @@ CM = 0.3937007874
 FIG_WIDTH = 33.5 * CM 
 
 # height of placeholder in pptx
-FIG_HEIGHT = 15 * CM 
+FIG_HEIGHT = 15 * CM
 
 # Kuraray color scheme from branding homepage
 kuracolors_rgb = {
