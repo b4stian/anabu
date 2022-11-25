@@ -149,6 +149,18 @@ settings_dict = {
         "type": float,
         "parameter": "requirement for focal length equivalent for 35 mm film",
     },
+    "flip": {
+        "variable": "flip",
+        "default_value": False,
+        "type": bool,
+        "parameter": "flip photo (rotate by 180°)",
+    },
+    "autorotate": {
+        "variable": "autorotate",
+        "default_value": True,
+        "type": bool,
+        "parameter": "automatically rotate photo so that main axis is horizontal",
+    },
     "automask": {
         "variable": "automask",
         "default_value": True,
@@ -209,6 +221,12 @@ settings_dict = {
         "type": str,
         "parameter": "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')",
     },
+    "pinholes": {
+        "variable": "pinholes",
+        "default_value": True,
+        "type": bool,
+        "parameter": "automatically evaluate pinholes",
+    },   
     "create_ppt": {
         "variable": "create_ppt",
         "default_value": True,

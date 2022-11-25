@@ -4,14 +4,12 @@
 Defines the photo class.
 """
 
-is_main = __name__ == "__main__"
-
 # ------------------------------------------------
 # imports
 
-if is_main:
+try:
     import interface
-else:
+except:
     import anabu.interface as interface
 
 import os
@@ -380,7 +378,10 @@ class Photo:
         try:
             mask = sm.io.imread(mask_path)
             # convert to 1D
-            mask = sm.util.img_as_ubyte(sm.color.rgb2gray(mask))
+            try:
+                mask = sm.util.img_as_ubyte(sm.color.rgb2gray(mask))
+            except:
+                pass
             # convert to boolean array, only 0 will be masked
             self.mask = mask != 0
             interface.logging.info(f"Mask file {mask_path} loaded.")
@@ -388,6 +389,7 @@ class Photo:
             interface.logging.exception(
                 f"Mask file could not be opened. {mask_path} Choose valid mask file or use automask."
             )
+            raise Exception(f"Mask file could not be opened. {mask_path} Choose valid mask file or use automask.")
         self.mask_path = mask_path
         try:
             self.mask_creation = datetime.fromtimestamp(
@@ -528,10 +530,10 @@ class Photo:
             automask_function_list, prefix="Automask:", suffix="complete", length=50
         ):
             function()
-
+        self.mask_height, self.mask_width = self.mask.shape[0], self.mask.shape[1]
         interface.logging.info(f"Successfully created automask.")
         if save:
-            self.save_image(binarized_photo, "automask")
+            self.save_image(self.mask, "automask")
 
     def add_mask(self) -> None:
         """
@@ -566,7 +568,7 @@ class Photo:
             value=self.percentage_nonmasked,
         )
 
-    def orientation(self) -> None:
+    def get_orientation(self) -> None:
         """
         Calculate photo orientation and set attribute "orientation" based on automask.
         """
@@ -577,9 +579,9 @@ class Photo:
             raise ValueError(
                 f'You must first provide a mask file or create automask using "mask" or "automask" method.'
             )
-        patch_label = sm.morphology.label(~self.mask, connectivity=2)
+        patch_label = sm.morphology.label(self.mask, connectivity=2)
         try:
-            self.orientation = sm.measure.regionprops(patch_label)[0].orientation
+            self.orientation = sm.measure.regionprops(patch_label)[0].orientation - np.pi/2
         except:
             interface.logging.exception(
                 f"There is a problem with the mask. Cannot determine its orientation."
@@ -607,14 +609,36 @@ class Photo:
             raise ValueError(
                 f'You must first get orientation of patch using "orientation" method.'
             )
-        self.photo = sm.transform.rotate(
-            self.photo, -self.orientation * (180 / np.pi) - 90
-        )
-        interface.logging.info(f"Rotated photo by {-self.orientation}.")
-        self.mask = sm.transform.rotate(
-            self.mask, -self.orientation * (180 / np.pi) - 90
-        )
-        interface.logging.info(f"Rotated mask by {-self.orientation}.")
+        if interface.user_settings.autorotate['value']:
+            self.photo = sm.transform.rotate(
+                self.photo, -self.orientation * 180 / np.pi -180
+            )
+            interface.logging.info(f"Rotated photo by {-self.orientation}.")
+            self.mask = sm.transform.rotate(
+                self.mask, -self.orientation * 180 / np.pi -180
+            )
+            interface.logging.info(f"Rotated mask by {-self.orientation}.")
+        
+    def flip_photo_mask(self) -> None:
+        """
+        Flip the image.
+        """
+        if not "mask" in self.__dict__.keys():
+            interface.logging.exception(
+                f'You must first provide a mask file or create automask using "mask" or "automask" method.'
+            )
+            raise ValueError(
+                f'You must first provide a mask file or create automask using "mask" or "automask" method.'
+            )
+        if interface.user_settings.flip['value']:
+            self.photo = sm.transform.rotate(
+                self.photo, 180
+            )
+            interface.logging.info(f"Rotated photo by 180°.")
+            self.mask = sm.transform.rotate(
+                self.mask, 180
+            )
+            interface.logging.info(f"Rotated mask by 180°.")                
 
     def maskview(self, output: str = None) -> None:
         """
@@ -716,6 +740,7 @@ class Photo:
                 tuple: top, bottom, left, and right borders
             """
             # get the indices of the non-zero elements in the mask (patch area)
+            self.save_image(binary_mask, "binary_mask")
             indices_not_masked = np.nonzero(binary_mask)
             indices_y = indices_not_masked[0]  # indices along the first axis
             indices_x = np.sort(
@@ -874,7 +899,8 @@ def run_photo() -> None:
     photo.basic_attribs()
     photo.check_exif()
     photo.add_mask()
-    photo.orientation()
+    photo.flip_photo_mask()
+    photo.get_orientation()
     photo.rotate_photo_mask()
     photo.maskview(output=interface.user_settings.maskview["value"])
     photo.autocrop(
@@ -887,13 +913,16 @@ def run_photo() -> None:
 # ------------------------------------------------
 # executions
 
+is_main = __name__ == "__main__"
+
 if is_main:
     interface.run_interface()
     photo = Photo(interface.user_settings.photo_file["value"])
     photo.basic_attribs()
     photo.check_exif()
     photo.add_mask()
-    photo.orientation()
+    photo.flip_photo_mask()
+    photo.get_orientation()
     photo.rotate_photo_mask()
     photo.maskview(output=interface.user_settings.maskview["value"])
     photo.autocrop(

@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-is_main = __name__ == "__main__"
-
 # ------------------------------------------------
 # imports
 
-if is_main:
+try:
     import interface
-else:
+except:
     import anabu.interface as interface
 import seaborn as sns
 import numpy as np
@@ -173,6 +171,8 @@ class Kurascheme:
     kurapalette = color_scheme.palette(palette_list)
     interface.logging.info("Defined Kuraray color palette")
     color_scheme.initialize_sns()
+
+is_main = __name__ == "__main__"
 
 if is_main:
     pass

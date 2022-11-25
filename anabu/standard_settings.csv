@@ -2,9 +2,9 @@
 
 "operator", "Bastian", "Name of the operator executing the script for documentation."
 
-"sample_name", "W4/1518", "Sample name. Will use file name of photo if not specified."
+"sample_name", "", "Sample name. Will use file name of photo if not specified."
 
-"photo_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Desktop\2021-12-17 Fotos\DSC00045.JPG", "Path to the photo file. If not found, will use dialog for selection."
+"photo_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Desktop\Auswertung 50\W4-2263-01.JPG", "Path to the photo file. If not found, will use dialog for selection."
 
 "target_Make", "SONY", "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_Model", "ILCE-7M2", "Target EXIF tag for photo file. Will not run if different tags are found."
@@ -21,18 +21,23 @@
 "target_DigitalZoomRatio", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_FocalLengthIn35mmFilm", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 
-"automask", True, "If True use automask, if False, try mask_file, then use dialog for selection."
+"flip", True, "flip photo (rotate by 180°)"
+"autorotate", True, "automatically rotate photo so that main axis is horizontal"
+    },
+
+"automask", False, "If True use automask, if False, try mask_file, then use dialog for selection."
 "automask_save", True, "save automask"
 "automask_grow", 0.65, "growing of automask (0.5 <= grow < 1)"
 
-"binarize_auto", False,"automatically perform binarization in automask"
+"binarize_auto", True,"automatically perform binarization in automask"
 "binarize_threshold", 100, "threshold for photo binarization (0-254) in automask if binarize_auto = False"
 "maskview", None, "don't save maskview (None), save maskview ('save') or prompt user if ok ('prompt)"
 
-"mask_file", "", "Path to the mask file (if automask = False). If not found, will use dialog for selection."
+"mask_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Desktop\Auswertung 50\W4-2263-01_automask.tiff", "Path to the mask file (if automask = False). If not found, will use dialog for selection."
 
 "autocrop", True, "automatically crop photo to patch based on mask when True"
 "autocrop_margin", 40, "margin for autocrop in pixels"
-"autocrop_save", "photo", "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')"
+"autocrop_save", "all", "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')"
 
+"pinholes", True, "automatically evaluate pinholes",
 "create_ppt", True, "If true, create ppt with main results."

@@ -5,10 +5,14 @@ is_main = __name__ == "__main__"
 # ------------------------------------------------
 # imports
 
-if is_main:
+try:
     import interface
-else:
+    import photo
+    import pinholes
+except:
     import anabu.interface as interface
+    import anabu.photo as photo
+    import anabu.pinholes as pinholes
 
 # ------------------------------------------------
 # parameters
@@ -30,7 +34,10 @@ def run():
     )
     interface.logging.info("Main imports successful.")
     interface.run_interface()
+    photo.run_photo()
+    pinholes.run_pinholes()
     # interface.end_analysis(path)
+    print('\a')
 
 
 # ------------------------------------------------
