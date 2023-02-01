@@ -11,8 +11,8 @@ try:
     import interface
     import photo
 except:
-    import anabu.interface as interface
-    import anabu.photo as photo
+    from anabu import interface
+    from anabu import photo
 
 import csv
 import os
@@ -37,6 +37,7 @@ CALIBRATION_1 = {
         -4.67029965e-08,
     ],
     "minimum_size": 6,
+    "exposure_time": 30.0,
 }
 
 # Diameters for pinhole size categories
@@ -73,8 +74,8 @@ class Pinholer:
                 raise Exception(
                     f"Attribute {attr} missing in {photo}. Cannot initiate Pinholer object."
                 )
-        interface.logging.info(f"Initiated Pinholer object for {self.sample_name}")
-        # TODO select best calibration best on photo details or via input.
+        interface.logging.info(f"Initiated Pinholer object for {self.sample_name}.")
+        # TODO select best calibration based on photo details or via input.
         self.calibration = CALIBRATION_1
         self.minimum_size_calibration = self.conv_pixel_diameter(
             self.calibration["minimum_size"]
@@ -106,13 +107,21 @@ class Pinholer:
         )
         interface.results.add_result(
             variable="calibration_minimum_size",
-            parameter="minimum size (pixels) of selected calibration",
+            parameter="minimum size (microns) of selected calibration",
             value=self.minimum_size_calibration,
+        )
+        interface.results.add_result(
+            variable="calibration_exposure_time",
+            parameter="exposure time used for creating calibration",
+            value=self.calibration["exposure_time"],
         )
         interface.logging.info(f"Selected calibration '{self.calibration['name']}, created on {self.calibration['date']}'.")
         interface.logging.info(
             f"Minimum pinhole diameter detectable with calibration is {round(self.minimum_size_calibration, 1)} µm."
         )
+        if self.calibration["exposure_time"] != interface.results.ExposureTime['value']:
+            interface.logging.exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}.")
+            raise Exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}.")
 
     def conv_pixel_diameter(self, x: float) -> float:
         """
@@ -248,7 +257,6 @@ class Pinholer:
         markings_cat3 = markings_cat1.copy()
         markings_cat4 = markings_cat1.copy()
         markings_cat5 = markings_cat1.copy()
-
 
         number = 1
 
