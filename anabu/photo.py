@@ -10,7 +10,7 @@ Defines the photo class.
 try:
     import interface
 except:
-    import anabu.interface as interface
+    from anabu import interface
 
 import os
 import platform
@@ -581,7 +581,7 @@ class Photo:
             )
         patch_label = sm.morphology.label(self.mask, connectivity=2)
         try:
-            self.orientation = sm.measure.regionprops(patch_label)[0].orientation - np.pi/2
+            self.orientation = sm.measure.regionprops(patch_label)[0].orientation
         except:
             interface.logging.exception(
                 f"There is a problem with the mask. Cannot determine its orientation."
@@ -589,7 +589,7 @@ class Photo:
             raise Exception(
                 f"There is a problem with the mask. Cannot determine its orientation."
             )
-        interface.logging.info(f"The orientation of the patch is {self.orientation}.")
+        interface.logging.info(f"The orientation of the patch is {self.orientation} (radian from vertical).")
 
     def rotate_photo_mask(self) -> None:
         """
@@ -610,14 +610,24 @@ class Photo:
                 f'You must first get orientation of patch using "orientation" method.'
             )
         if interface.user_settings.autorotate['value']:
-            self.photo = sm.transform.rotate(
-                self.photo, -self.orientation * 180 / np.pi -180
-            )
-            interface.logging.info(f"Rotated photo by {-self.orientation}.")
-            self.mask = sm.transform.rotate(
-                self.mask, -self.orientation * 180 / np.pi -180
-            )
-            interface.logging.info(f"Rotated mask by {-self.orientation}.")
+            if (self.orientation >0) and (self.orientation <= np.pi):
+                self.photo = sm.transform.rotate(
+                    self.photo, (np.pi/2-self.orientation) * 180 / np.pi -180
+                )
+                interface.logging.info(f"Rotated photo by {np.pi/2-self.orientation}.")
+                self.mask = sm.transform.rotate(
+                    self.mask, (np.pi/2-self.orientation) * 180 / np.pi -180
+                )
+                interface.logging.info(f"Rotated mask by {np.pi/2-self.orientation}.")
+            else:
+                self.photo = sm.transform.rotate(
+                    self.photo, (-np.pi/2-self.orientation) * 180 / np.pi -180
+                )
+                interface.logging.info(f"Rotated photo by {-np.pi/2-self.orientation}.")
+                self.mask = sm.transform.rotate(
+                    self.mask, (-np.pi/2-self.orientation) * 180 / np.pi -180
+                )
+                interface.logging.info(f"Rotated mask by {-np.pi/2-self.orientation}.")
         
     def flip_photo_mask(self) -> None:
         """
@@ -757,6 +767,9 @@ class Photo:
             )  # needs to be one less because it will be cut off
             crop_edges = (top_edge, bottom_edge, left_edge, right_edge)
             return crop_edges
+            # This could also be done with skimage:
+            # patch_label = sm.morphology.label(self.mask, connectivity=2)
+            # bounding_box = sm.measure.regionprops(patch_label)[0].bbox
 
         def dimensions_patch(photo: np.ndarray, crop_edges: tuple) -> tuple:
             """
@@ -924,6 +937,7 @@ if is_main:
     photo.flip_photo_mask()
     photo.get_orientation()
     photo.rotate_photo_mask()
+    photo.get_orientation()
     photo.maskview(output=interface.user_settings.maskview["value"])
     photo.autocrop(
         photo.photo,

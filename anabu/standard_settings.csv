@@ -21,7 +21,7 @@
 "target_DigitalZoomRatio", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_FocalLengthIn35mmFilm", None, "Target EXIF tag for photo file. Will not run if different tags are found."
 
-"flip", True, "flip photo (rotate by 180°)"
+"flip", False, "flip photo (rotate by 180°)"
 "autorotate", True, "automatically rotate photo so that main axis is horizontal"
     },
 

@@ -5,8 +5,10 @@
 
 try:
     import interface
+    import density
 except:
-    import anabu.interface as interface
+    from anabu import interface
+    from  anabu import density
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
@@ -161,7 +163,9 @@ class Kurascheme:
         )
         interface.logging.info("Set Kuraray brand settings for plots.")
         
+# TODO Draw scalebars around cropped photo.
 
+# TODO distributions
 
 # ------------------------------------------------
 # executions
