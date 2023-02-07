@@ -9,21 +9,26 @@ try:
     import interface
     import photo
     import pinholes
+    import density
 except:
     import anabu.interface as interface
     import anabu.photo as photo
     import anabu.pinholes as pinholes
+    import anabu.density as density
+import os
+
+
 
 # ------------------------------------------------
 # parameters
 
-version = "0.5"
+version = "0.6"
 
 # ------------------------------------------------
 # function/class definitions
 
 
-def run():
+def run_analysis_photo():
     """Runs the whole analysis script."""
     interface.set_up_logging()
     interface.logging.info("--------------------------------------------------------")
@@ -36,7 +41,9 @@ def run():
     interface.run_interface()
     photo.run_photo()
     pinholes.run_pinholes()
-    # interface.end_analysis(path)
+    density.run_density()
+    interface.end_analysis()
+    interface.logging.info("DONE.")
     print('\a')
 
 
@@ -44,4 +51,4 @@ def run():
 # executed code
 
 if is_main:
-    run()
+    run_analysis_photo()

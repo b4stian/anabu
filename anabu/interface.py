@@ -13,6 +13,10 @@ is_main = __name__ == "__main__"
 # ------------------------------------------------
 # imports
 
+try:
+    import photo
+except:
+    from anabu import photo
 import csv
 import logging
 import os
@@ -174,7 +178,7 @@ settings_dict = {
         "parameter": "save automask",
     },
     "automask_grow": {
-        "variable": "automask",
+        "variable": "automask_grow",
         "default_value": 0.65,
         "type": float,
         "parameter": "growing of automask (0.5 <= grow < 1)",
@@ -227,6 +231,12 @@ settings_dict = {
         "type": bool,
         "parameter": "automatically evaluate pinholes",
     },   
+    "export_distribution": {
+        "variable": "export_distribution",
+        "default_value": False,
+        "type": bool,
+        "parameter": "exports csv with distribution",
+    },
     "create_ppt": {
         "variable": "create_ppt",
         "default_value": True,
@@ -318,8 +328,9 @@ class Results:
                         self.__dict__[attribute]["variable"],
                         self.__dict__[attribute]["parameter"],
                         self.__dict__[attribute]["value"]
-                        if self.__dict__[attribute]["value"]
-                        else "not set",
+                        #if self.__dict__[attribute]["value"]
+                        #else "not set"
+                        ,
                     ]
                 )
         logging.info(f'CSV file with results saved: "{path}".')
@@ -542,12 +553,14 @@ def progressBar(
 
 
 # FIXME finalize/test function
-def end_analysis(path: str) -> None:
+def end_analysis() -> None:
     """Function to be called at the end. Copies logfile to path."""
+    results.export_csv(f"{os.path.splitext(photo.photo.photo_path)[0]}_results.csv")
     logging.info("----------------------------------")
     logging.info("Evaluation completed successfully!")
     logging.info("----------------------------------")
-    copy2("log/logfile.log", path)
+    copy2("log/logfile.log", f"{os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt")
+    logging.info(f"Logfile copied to {os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt.")
 
 
 def run_interface() -> None:

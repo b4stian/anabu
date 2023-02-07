@@ -25,7 +25,7 @@
 "autorotate", True, "automatically rotate photo so that main axis is horizontal"
     },
 
-"automask", False, "If True use automask, if False, try mask_file, then use dialog for selection."
+"automask", True, "If True use automask, if False, try mask_file, then use dialog for selection."
 "automask_save", True, "save automask"
 "automask_grow", 0.65, "growing of automask (0.5 <= grow < 1)"
 
@@ -40,4 +40,5 @@
 "autocrop_save", "all", "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')"
 
 "pinholes", True, "automatically evaluate pinholes",
+"export_distribution", False, "exports csv with distribution",
 "create_ppt", True, "If true, create ppt with main results."

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-from anabu.analysis import run
+try:
+    from anabu.analysis import run_analysis_photo
+except:
+    from analysis import run
 
 # ------------------------------------------------
 # executions
@@ -8,4 +11,4 @@ from anabu.analysis import run
 is_main = __name__ == "__main__"
 
 if is_main:
-    run()
+    run_analysis_photo()

@@ -13,7 +13,9 @@ try:
 except:
     from anabu import interface
     from anabu import photo
-    
+
+import csv
+import os    
 import numpy as np
 import skimage as sm
 import scipy.stats
@@ -84,8 +86,8 @@ class Evaluator:
         )
         interface.logging.info(f'Selected calibration "{self.calibration["name"]}", created on {self.calibration["date"]}.')
         if self.calibration["exposure_time"] != interface.results.ExposureTime['value']:
-            interface.logging.exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}.")
-            raise Exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}.")
+            interface.logging.exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.ExposureTime['value']}.")
+            raise Exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.ExposureTime['value']}.")
 
     def create_grey_photo(self) -> np.ndarray:
         self.grey_photo = sm.util.img_as_ubyte(sm.color.rgb2gray(self.cropped_photo))
@@ -115,6 +117,19 @@ class Evaluator:
         self.brightness_percentage = self.brightness_counts / self.number_total_pixels * 100
         self.cumulative_percentage = self.brightness_cumulative / self.number_total_pixels *100
         interface.logging.info("Calculated brightness distributions.")
+    
+    def export_distributions(self) -> None:
+        if interface.user_settings.export_distribution["value"] == False:
+            return None
+        distributions_list = [["sample name", "ExpTime", "FNumb", "brightness", "intensity_counts"]]
+        for value in range(len(self.brightness_array)):
+            distributions_list.append([self.sample_name, interface.results.ExposureTime['value'], interface.results.FNumber['value'], self.brightness_array[value], self.brightness_counts[value]])
+        with open(
+            f"{os.path.splitext(self.photo_path)[0]}_distribution.csv", "w", encoding="UTF8", newline=""
+        ) as f:
+            writer = csv.writer(f)
+            writer.writerows(distributions_list)
+        interface.logging.info(f"Exported file with distributions: {os.path.splitext(self.photo_path)[0]}_distribution.csv")
         
     def calculate_distribution_params(self) -> None:
         def mean_2(array:np.ndarray) -> float:
@@ -231,7 +246,7 @@ class Evaluator:
             interface.results.add_result(
                 variable=f"brightness_{threshold}",
                 parameter=f"brightness which {threshold}% of pixels exceed",
-                value=np.where(self.cumulative_percentage < threshold)[0][0] - 1,
+                value=np.where((100-self.cumulative_percentage) < threshold)[0][0],
             )             
 
 
@@ -241,6 +256,7 @@ def run_density():
     evaluator.create_grey_photo()
     evaluator.create_brightness_arrays()
     evaluator.calculate_distribution_params()
+    evaluator.export_distributions()
 
 # ------------------------------------------------
 # executions

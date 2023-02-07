@@ -100,30 +100,30 @@ class Photo:
         self.photo_path = photo_path
         try:
             # read photo with PIL (for checks)
-            self.photo_check = PIL_Image.open(photo_path)
+            self.photo_check = PIL_Image.open(self.photo_path)
         except FileNotFoundError:
-            interface.logging.warning(f"File {photo_path} not found.")
-            photo_path = photo_dialog()
+            interface.logging.warning(f"File {self.photo_path} not found.")
+            self.photo_path = photo_dialog()
         except AttributeError:
-            interface.logging.warning(f"Filename {photo_path} could not be read.")
-            photo_path = photo_dialog()
+            interface.logging.warning(f"Filename {self.photo_path} could not be read.")
+            self.photo_path = photo_dialog()
         try:
-            self.photo_check = PIL_Image.open(photo_path)
-            interface.logging.info(f"File {photo_path} found.")
+            self.photo_check = PIL_Image.open(self.photo_path)
+            interface.logging.info(f"File {self.photo_path} found.")
         except AttributeError:
-            interface.logging.exception(f"No valid photo file selected. {photo_path}")
-            raise Exception(f"No valid photo file selected. {photo_path}")
-        self.file_name = os.path.splitext(os.path.basename(photo_path))[0]
+            interface.logging.exception(f"No valid photo file selected. {self.photo_path}")
+            raise Exception(f"No valid photo file selected. {self.photo_path}")
+        self.file_name = os.path.splitext(os.path.basename(self.photo_path))[0]
         try:
             # read photo with skimage (for evaluation)
-            self.photo = sm.io.imread(photo_path)
-            interface.logging.info(f"File {photo_path} loaded.")
+            self.photo = sm.io.imread(self.photo_path)
+            interface.logging.info(f"File {self.photo_path} loaded.")
         except:
-            interface.logging.exception(f"Photo file could not be loaded. {photo_path}")
-            raise Exception(f"Photo file could not be loaded. {photo_path}")
-        self.folder = os.path.dirname(os.path.abspath(photo_path))
-        self.file_root = os.path.splitext(photo_path)[0]
-        self.photo_file = os.path.basename(photo_path)
+            interface.logging.exception(f"Photo file could not be loaded. {self.photo_path}")
+            raise Exception(f"Photo file could not be loaded. {self.photo_path}")
+        self.folder = os.path.dirname(os.path.abspath(self.photo_path))
+        self.file_root = os.path.splitext(self.photo_path)[0]
+        self.photo_file = os.path.basename(self.photo_path)
 
     def __repr__(self) -> str:
         sm.io.imshow(self.photo)
