@@ -39,10 +39,16 @@ def run_analysis_photo():
     )
     interface.logging.info("Main imports successful.")
     interface.run_interface()
-    photo.run_photo()
-    pinholes.run_pinholes()
-    density.run_density()
-    interface.end_analysis()
+    if interface.user_settings.batch_evaluation["value"]:
+        for file in interface.user_settings.file_list["value"]:
+            interface.user_settings.photo_file["value"] = file
+            try:
+                photo.run_photo()
+                pinholes.run_pinholes()
+                density.run_density()
+                interface.end_analysis()
+            except:
+                interface.logging.info(f"Error trying to evaluate file {file}.")
     interface.logging.info("DONE.")
     print('\a')
 

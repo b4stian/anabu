@@ -22,9 +22,9 @@ import logging
 import os
 from collections.abc import Generator, Iterable
 from datetime import datetime
+import glob
 from shutil import copy2
-from tkinter import (Tk, filedialog,  # FIXME messagebox needed in this file?
-                     messagebox)
+from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
 
 # ------------------------------------------------
 # variables
@@ -48,6 +48,22 @@ py_path = os.path.abspath(os.curdir)
 # paths to look for settings files (csv)
 settings_try_paths = (f"{py_path}/standard_settings.csv", "anabu/standard_settings.csv")
 
+# files to ignore in batch evaluation
+files_ignore = [
+    "_automask",
+    "_binarized",
+    "_binary_mask",
+    "_circle_numbers",
+    "_circled",
+    "_cropped_mask",
+    "_cropped_photo",
+    "_holes",
+    "_labels",
+    "_masked_cropped",
+    "_maskedrg",
+    "_maskview"
+]
+
 # property: ["name of property in csv", "default value if not found", "type of value", "explanation of variable"]
 # TODO Double-check target values
 settings_dict = {
@@ -68,6 +84,18 @@ settings_dict = {
         "default_value": "undefined",
         "type": str,
         "parameter": "path to the photo file (open dialog if not found)",
+    },
+    "batch_evaluation": {
+        "variable": "batch_evaluation",
+        "default_value": False,
+        "type": bool,
+        "parameter": "batch evaluate all photos in photo_folder",
+    },
+    "photo_folder": {
+        "variable": "photo_folder",
+        "default_value": "undefined",
+        "type": str,
+        "parameter": "folder for batch batch evaluation",
     },
     "target_Make": {
         "variable": "target_Make",
@@ -230,7 +258,7 @@ settings_dict = {
         "default_value": True,
         "type": bool,
         "parameter": "automatically evaluate pinholes",
-    },   
+    },
     "export_distribution": {
         "variable": "export_distribution",
         "default_value": False,
@@ -328,8 +356,8 @@ class Results:
                         self.__dict__[attribute]["variable"],
                         self.__dict__[attribute]["parameter"],
                         self.__dict__[attribute]["value"]
-                        #if self.__dict__[attribute]["value"]
-                        #else "not set"
+                        # if self.__dict__[attribute]["value"]
+                        # else "not set"
                         ,
                     ]
                 )
@@ -511,6 +539,49 @@ def get_folder(path: str) -> str:
     return os.path.splitext(path)[0]
 
 
+def get_files_in_folder(folder: str, ignore: list = files_ignore) -> list:
+    """
+    Get list of photo files in folder which don't contain strings in files
+
+    Args:
+        folder (str): folder containing photo files
+        ignore (list): list of strings to ignore
+
+    Returns:
+        list: list of photo files
+    """
+    file_list_all = glob.glob(os.path.join(folder, "*.jpg"))
+    file_list_all += glob.glob(os.path.join(folder, "*.jpeg"))
+    file_list_all += glob.glob(os.path.join(folder, "*.png"))
+    file_list_all += glob.glob(os.path.join(folder, "*.tiff"))
+    file_list = [
+        file
+        for file in file_list_all
+        if not any(ignorefile in file for ignorefile in ignore)
+    ]
+    return file_list
+
+
+def folder_dialog() -> str:
+    """
+    Use dialog to select folder with photos.
+
+    Returns:
+        str: path to selected folder
+    """
+    logging.info(f"Using dialog for selecting folder with photos.")
+    folder = filedialog.askdirectory(
+        title="Select folder with photo files for evaluation",
+    )
+    logging.info(f"Selected folder with photo files using dialog: {folder}")
+    results.add_result(
+        variable="folder_dialog",
+        parameter="path to folder with photo files selected with dialog",
+        value=folder,
+    )
+    return folder
+
+
 def progressBar(
     iterable: Iterable,
     prefix: str = "",
@@ -559,8 +630,12 @@ def end_analysis() -> None:
     logging.info("----------------------------------")
     logging.info("Evaluation completed successfully!")
     logging.info("----------------------------------")
-    copy2("log/logfile.log", f"{os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt")
-    logging.info(f"Logfile copied to {os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt.")
+    copy2(
+        "log/logfile.log", f"{os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt"
+    )
+    logging.info(
+        f"Logfile copied to {os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt."
+    )
 
 
 def run_interface() -> None:
@@ -573,6 +648,25 @@ def run_interface() -> None:
     settings_path = Settings.set_settings_path(*settings_try_paths)
     user_settings = Settings(settings_path, settings_dict)
     results.settings_to_results(user_settings)
+    if user_settings.batch_evaluation["value"]:
+        try:
+            file_list = get_files_in_folder(user_settings.photo_folder["value"])
+        except:
+            file_list = get_files_in_folder(folder_dialog())
+        user_settings.set_sett_attribute(
+            "file_list",
+            {
+                "variable": "file_list",
+                "parameter": "list of files for evaluation",
+                "value": file_list,
+            },
+        )
+        results.add_result(
+            variable="file_list",
+            parameter="photo files for batch evaluation",
+            value=file_list,
+        )
+        logging.info(f"Found {len(file_list)} photos for batch evaluation: {file_list}")
 
 
 # ------------------------------------------------

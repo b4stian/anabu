@@ -26,6 +26,7 @@ import skimage as sm
 # variables
 
 # calibration parameters from microscopic pinhole measurements
+# FIXME correct! Is this 175?
 CALIBRATION_1 = {
     "name": "Calibration 1",
     "date": "2022-07-09",
@@ -293,6 +294,7 @@ class Pinholer:
         return self.circled_photo
     
     def save_labeled_photo(self, circled_photo:np.ndarray, details:list) -> np.ndarray:
+        plt.clf()
         img = self.circled_photo.copy()
         for i in details:
             if i[4]==1:

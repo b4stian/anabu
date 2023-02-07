@@ -938,6 +938,7 @@ if is_main:
     photo.get_orientation()
     photo.rotate_photo_mask()
     photo.get_orientation()
+    print(interface.user_settings.maskview["value"])
     photo.maskview(output=interface.user_settings.maskview["value"])
     photo.autocrop(
         photo.photo,
