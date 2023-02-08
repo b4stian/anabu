@@ -17,12 +17,12 @@ try:
     import photo
 except:
     from anabu import photo
-import csv
-import logging
-import os
 from collections.abc import Generator, Iterable
+import csv
 from datetime import datetime
 import glob
+import logging
+import os
 from shutil import copy2
 from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
 
@@ -78,7 +78,7 @@ settings_dict = {
         "variable": "sample_name",
         "default_value": "undefined",
         "type": str,
-        "parameter": "name of the analyzed sample",
+        "parameter": "name of the analyzed sample (not for batch)",
     },
     "photo_file": {
         "variable": "photo_file",

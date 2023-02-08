@@ -8,10 +8,10 @@ try:
     import density
 except:
     from anabu import interface
-    from  anabu import density
-import seaborn as sns
-import numpy as np
+    from anabu import density
 import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 
 # ------------------------------------------------
 # variables
@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 CM = 0.3937007874
 
 # width of placeholder in pptx
-FIG_WIDTH = 33.5 * CM 
+FIG_WIDTH = 33.5 * CM
 
 # height of placeholder in pptx
 FIG_HEIGHT = 15 * CM
@@ -102,17 +102,13 @@ palette_list = [
 class Kurascheme:
     """Kuraray color scheme."""
 
-    def __init__(self, colors:dict) -> None:
-        """Read dictionary with color names and RGB tuples."""        
+    def __init__(self, colors: dict) -> None:
+        """Read dictionary with color names and RGB tuples."""
         try:
             for item in colors.values():
                 if not np.prod([value >= 0 and value <= 255 for value in item]):
-                    interface.logging.exception(
-                        "Expecting dictionary with RGB tuples."
-                    )
-                    raise ValueError(
-                        "Expecting dictionary with RGB tuples."
-                    )
+                    interface.logging.exception("Expecting dictionary with RGB tuples.")
+                    raise ValueError("Expecting dictionary with RGB tuples.")
         except:
             interface.logging.exception(
                 f"Expecting dictionary with RGB tuples. Check your color scheme. {colors}"
@@ -126,7 +122,7 @@ class Kurascheme:
         return f"Kuraray color scheme: {str(self.colors)}"
 
     @staticmethod
-    def convert_to_hex(rgb:tuple) -> tuple:
+    def convert_to_hex(rgb: tuple) -> tuple:
         """
         Convert a color from rgb to hexadecimal.
         """
@@ -138,8 +134,8 @@ class Kurascheme:
         """
         for item in self.colors:
             self.colors[item] = self.convert_to_hex(self.colors[item])
-            
-    def palette(self, color_list:list) -> sns.palettes._ColorPalette:
+
+    def palette(self, color_list: list) -> sns.palettes._ColorPalette:
         """
         Return seaborn color palette with kuraray colors from color_list.
         """
@@ -162,19 +158,20 @@ class Kurascheme:
             },
         )
         interface.logging.info("Set Kuraray brand settings for plots.")
-        
-# TODO Draw scalebars around cropped photo.
 
-# TODO distributions
+    # TODO Draw scalebars around cropped photo.
 
-# ------------------------------------------------
-# executions
+    # TODO distributions
+
+    # ------------------------------------------------
+    # executions
 
     color_scheme = Kurascheme(kuracolors_rgb)
     color_scheme.to_hex()
     kurapalette = color_scheme.palette(palette_list)
     interface.logging.info("Defined Kuraray color palette")
     color_scheme.initialize_sns()
+
 
 is_main = __name__ == "__main__"
 

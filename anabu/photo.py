@@ -12,15 +12,15 @@ try:
 except:
     from anabu import interface
 
+from datetime import datetime
 import os
 import platform
-from datetime import datetime
 from typing import Union
 
-import numpy as np
-import skimage as sm
 from PIL import ExifTags as PIL_ExifTags
 from PIL import Image as PIL_Image
+import numpy as np
+import skimage as sm
 
 # ------------------------------------------------
 # variables
@@ -111,7 +111,9 @@ class Photo:
             self.photo_check = PIL_Image.open(self.photo_path)
             interface.logging.info(f"File {self.photo_path} found.")
         except AttributeError:
-            interface.logging.exception(f"No valid photo file selected. {self.photo_path}")
+            interface.logging.exception(
+                f"No valid photo file selected. {self.photo_path}"
+            )
             raise Exception(f"No valid photo file selected. {self.photo_path}")
         self.file_name = os.path.splitext(os.path.basename(self.photo_path))[0]
         try:
@@ -119,7 +121,9 @@ class Photo:
             self.photo = sm.io.imread(self.photo_path)
             interface.logging.info(f"File {self.photo_path} loaded.")
         except:
-            interface.logging.exception(f"Photo file could not be loaded. {self.photo_path}")
+            interface.logging.exception(
+                f"Photo file could not be loaded. {self.photo_path}"
+            )
             raise Exception(f"Photo file could not be loaded. {self.photo_path}")
         self.folder = os.path.dirname(os.path.abspath(self.photo_path))
         self.file_root = os.path.splitext(self.photo_path)[0]
@@ -389,7 +393,9 @@ class Photo:
             interface.logging.exception(
                 f"Mask file could not be opened. {mask_path} Choose valid mask file or use automask."
             )
-            raise Exception(f"Mask file could not be opened. {mask_path} Choose valid mask file or use automask.")
+            raise Exception(
+                f"Mask file could not be opened. {mask_path} Choose valid mask file or use automask."
+            )
         self.mask_path = mask_path
         try:
             self.mask_creation = datetime.fromtimestamp(
@@ -589,7 +595,9 @@ class Photo:
             raise Exception(
                 f"There is a problem with the mask. Cannot determine its orientation."
             )
-        interface.logging.info(f"The orientation of the patch is {self.orientation} (radian from vertical).")
+        interface.logging.info(
+            f"The orientation of the patch is {self.orientation} (radian from vertical)."
+        )
 
     def rotate_photo_mask(self) -> None:
         """
@@ -609,26 +617,26 @@ class Photo:
             raise ValueError(
                 f'You must first get orientation of patch using "orientation" method.'
             )
-        if interface.user_settings.autorotate['value']:
-            if (self.orientation >0) and (self.orientation <= np.pi):
+        if interface.user_settings.autorotate["value"]:
+            if (self.orientation > 0) and (self.orientation <= np.pi):
                 self.photo = sm.transform.rotate(
-                    self.photo, (np.pi/2-self.orientation) * 180 / np.pi -180
+                    self.photo, (np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated photo by {np.pi/2-self.orientation}.")
                 self.mask = sm.transform.rotate(
-                    self.mask, (np.pi/2-self.orientation) * 180 / np.pi -180
+                    self.mask, (np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated mask by {np.pi/2-self.orientation}.")
             else:
                 self.photo = sm.transform.rotate(
-                    self.photo, (-np.pi/2-self.orientation) * 180 / np.pi -180
+                    self.photo, (-np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated photo by {-np.pi/2-self.orientation}.")
                 self.mask = sm.transform.rotate(
-                    self.mask, (-np.pi/2-self.orientation) * 180 / np.pi -180
+                    self.mask, (-np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated mask by {-np.pi/2-self.orientation}.")
-        
+
     def flip_photo_mask(self) -> None:
         """
         Flip the image.
@@ -640,15 +648,11 @@ class Photo:
             raise ValueError(
                 f'You must first provide a mask file or create automask using "mask" or "automask" method.'
             )
-        if interface.user_settings.flip['value']:
-            self.photo = sm.transform.rotate(
-                self.photo, 180
-            )
+        if interface.user_settings.flip["value"]:
+            self.photo = sm.transform.rotate(self.photo, 180)
             interface.logging.info(f"Rotated photo by 180°.")
-            self.mask = sm.transform.rotate(
-                self.mask, 180
-            )
-            interface.logging.info(f"Rotated mask by 180°.")                
+            self.mask = sm.transform.rotate(self.mask, 180)
+            interface.logging.info(f"Rotated mask by 180°.")
 
     def maskview(self, output: str = None) -> None:
         """

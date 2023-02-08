@@ -21,10 +21,11 @@ PATH_MASTER_PPT = r"ppt/PPT_master.pptx"
 # ------------------------------------------------
 # functions/classes
 
+
 def run_ppt() -> None:
-    if not interface.user_settings.create_ppt['value']:
+    if not interface.user_settings.create_ppt["value"]:
         return
-    
+
 
 # ------------------------------------------------
 # executions

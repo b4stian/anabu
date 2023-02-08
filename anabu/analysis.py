@@ -18,7 +18,6 @@ except:
 import os
 
 
-
 # ------------------------------------------------
 # parameters
 
@@ -50,7 +49,7 @@ def run_analysis_photo():
             except:
                 interface.logging.info(f"Error trying to evaluate file {file}.")
     interface.logging.info("DONE.")
-    print('\a')
+    print("\a")
 
 
 # ------------------------------------------------

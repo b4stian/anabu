@@ -17,8 +17,8 @@ except:
 import csv
 import os
 
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import numpy as np
 import skimage as sm
 
@@ -32,7 +32,7 @@ CALIBRATION_1 = {
     "date": "2022-07-09",
     "threshold": 175,
     "parameters": [
-        2.97879300e+00,
+        2.97879300e00,
         -1.16214041e-02,
         2.67696227e-05,
         1.79613183e-09,
@@ -116,13 +116,19 @@ class Pinholer:
             parameter="exposure time used for creating calibration",
             value=self.calibration["exposure_time"],
         )
-        interface.logging.info(f"Selected calibration '{self.calibration['name']}, created on {self.calibration['date']}'.")
+        interface.logging.info(
+            f"Selected calibration '{self.calibration['name']}, created on {self.calibration['date']}'."
+        )
         interface.logging.info(
             f"Minimum pinhole diameter detectable with calibration is {round(self.minimum_size_calibration, 1)} µm."
         )
-        if self.calibration["exposure_time"] != interface.results.ExposureTime['value']:
-            interface.logging.exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}.")
-            raise Exception(f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}.")
+        if self.calibration["exposure_time"] != interface.results.ExposureTime["value"]:
+            interface.logging.exception(
+                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}."
+            )
+            raise Exception(
+                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}."
+            )
 
     def conv_pixel_diameter(self, x: float) -> float:
         """
@@ -196,8 +202,7 @@ class Pinholer:
         )
         return steps
 
-    def extract_pinhole_details(self,
-        labels: np.ndarray) -> list:
+    def extract_pinhole_details(self, labels: np.ndarray) -> list:
         details = []
 
         def append_details(region, category: int) -> None:
@@ -232,28 +237,27 @@ class Pinholer:
         self.details = details
         interface.logging.info(f"Extracted details for {len(self.details)} pinholes.")
         return self.details
-    
-    def save_pinhole_details(self, details:list) -> None:
-        with open(f"{os.path.splitext(self.photo_path)[0]}_pinholes.csv", 'w', newline='', encoding='utf-8') as f:
+
+    def save_pinhole_details(self, details: list) -> None:
+        with open(
+            f"{os.path.splitext(self.photo_path)[0]}_pinholes.csv",
+            "w",
+            newline="",
+            encoding="utf-8",
+        ) as f:
             writer = csv.writer(f)
             for i in details:
-                writer.writerow([
-                self.sample_name,
-                i[2],
-                i[0],
-                i[1],
-                i[3],
-                i[4],
-                i[5],
-                i[6],
-                i[7]
-                ])
-        interface.logging.info(f"Saved CSV file with pinhole data to {os.path.splitext(self.photo_path)[0]}_pinholes.csv.")
+                writer.writerow(
+                    [self.sample_name, i[2], i[0], i[1], i[3], i[4], i[5], i[6], i[7]]
+                )
+        interface.logging.info(
+            f"Saved CSV file with pinhole data to {os.path.splitext(self.photo_path)[0]}_pinholes.csv."
+        )
 
-    def create_circled_photo(self,
-        binarized_photo: np.ndarray, labels: np.ndarray
+    def create_circled_photo(
+        self, binarized_photo: np.ndarray, labels: np.ndarray
     ) -> np.ndarray:
-        markings_cat1 = np.zeros((binarized_photo.shape[0],binarized_photo.shape[1]))
+        markings_cat1 = np.zeros((binarized_photo.shape[0], binarized_photo.shape[1]))
         markings_cat2 = markings_cat1.copy()
         markings_cat3 = markings_cat1.copy()
         markings_cat4 = markings_cat1.copy()
@@ -280,48 +284,97 @@ class Pinholer:
                 markings_cat5[rc, cc] = 1
             number += 1
 
-        markings_cat3 = sm.morphology.dilation(markings_cat3, sm.morphology.disk(radius=2))
-        markings_cat4 = sm.morphology.dilation(markings_cat4, sm.morphology.disk(radius=2))
-        markings_cat5 = sm.morphology.dilation(markings_cat5, sm.morphology.disk(radius=2))
-        
+        markings_cat3 = sm.morphology.dilation(
+            markings_cat3, sm.morphology.disk(radius=2)
+        )
+        markings_cat4 = sm.morphology.dilation(
+            markings_cat4, sm.morphology.disk(radius=2)
+        )
+        markings_cat5 = sm.morphology.dilation(
+            markings_cat5, sm.morphology.disk(radius=2)
+        )
+
         self.circled_photo = sm.img_as_ubyte(self.cropped_photo.copy())
-        self.circled_photo[markings_cat1==1] = [255, 0, 0]
-        self.circled_photo[markings_cat2==1] = [0, 0, 255]
-        self.circled_photo[markings_cat3==1] = [0, 255, 0]
-        self.circled_photo[markings_cat4==1] = [255, 255, 0]
-        self.circled_photo[markings_cat5==1] = [255, 255, 255]
+        self.circled_photo[markings_cat1 == 1] = [255, 0, 0]
+        self.circled_photo[markings_cat2 == 1] = [0, 0, 255]
+        self.circled_photo[markings_cat3 == 1] = [0, 255, 0]
+        self.circled_photo[markings_cat4 == 1] = [255, 255, 0]
+        self.circled_photo[markings_cat5 == 1] = [255, 255, 255]
         interface.logging.info(f"Created photo with circled pinholes.")
         return self.circled_photo
-    
-    def save_labeled_photo(self, circled_photo:np.ndarray, details:list) -> np.ndarray:
+
+    def save_labeled_photo(
+        self, circled_photo: np.ndarray, details: list
+    ) -> np.ndarray:
         plt.clf()
         img = self.circled_photo.copy()
         for i in details:
-            if i[4]==1:
-                plt.text(i[1], i[0]-i[3]*4, f"{i[2]} ({round(i[7])} \u03bcm)", dict(color='red', va='center', ha='center', fontsize=1+i[3]/3))
-            if i[4]==2:
-                plt.text(i[1], i[0]-i[3]*4, f"{i[2]} ({round(i[7])} \u03bcm)", dict(color='blue', va='center', ha='center', fontsize=1+i[3]/3))
-            if i[4]==3:
-                plt.text(i[1], i[0]-i[3]*4, f"{i[2]} ({round(i[7])} \u03bcm)", dict(color='green', va='center', ha='center', fontsize=1+i[3]/3))
-            if i[4]==4:
-                plt.text(i[1], i[0]-i[3]*4, f"{i[2]} ({round(i[7])} \u03bcm)", dict(color='yellow', va='center', ha='center', fontsize=1+i[3]/3))
-            if i[4]==5:
-                plt.text(i[1], i[0]-i[3]*4, f"{i[2]} ({round(i[7])} \u03bcm)", dict(color='white', va='center', ha='center', fontsize=1+i[3]/3))
-        plt.axis('off')
+            if i[4] == 1:
+                plt.text(
+                    i[1],
+                    i[0] - i[3] * 4,
+                    f"{i[2]} ({round(i[7])} \u03bcm)",
+                    dict(color="red", va="center", ha="center", fontsize=1 + i[3] / 3),
+                )
+            if i[4] == 2:
+                plt.text(
+                    i[1],
+                    i[0] - i[3] * 4,
+                    f"{i[2]} ({round(i[7])} \u03bcm)",
+                    dict(color="blue", va="center", ha="center", fontsize=1 + i[3] / 3),
+                )
+            if i[4] == 3:
+                plt.text(
+                    i[1],
+                    i[0] - i[3] * 4,
+                    f"{i[2]} ({round(i[7])} \u03bcm)",
+                    dict(
+                        color="green", va="center", ha="center", fontsize=1 + i[3] / 3
+                    ),
+                )
+            if i[4] == 4:
+                plt.text(
+                    i[1],
+                    i[0] - i[3] * 4,
+                    f"{i[2]} ({round(i[7])} \u03bcm)",
+                    dict(
+                        color="yellow", va="center", ha="center", fontsize=1 + i[3] / 3
+                    ),
+                )
+            if i[4] == 5:
+                plt.text(
+                    i[1],
+                    i[0] - i[3] * 4,
+                    f"{i[2]} ({round(i[7])} \u03bcm)",
+                    dict(
+                        color="white", va="center", ha="center", fontsize=1 + i[3] / 3
+                    ),
+                )
+        plt.axis("off")
         plt.gca().set_axis_off()
-        plt.subplots_adjust(top = 1, bottom = 0, right = 1, left = 0, 
-                    hspace = 0, wspace = 0)
-        plt.margins(0,0)
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        plt.margins(0, 0)
         plt.gca().xaxis.set_major_locator(plt.NullLocator())
         plt.gca().yaxis.set_major_locator(plt.NullLocator())
         plt.imshow(img)
         try:
-            plt.savefig(os.path.splitext(self.photo_path)[0] + "_pinholes.png",bbox_inches='tight',pad_inches=0, dpi=450)
-            interface.logging.info(f"Saved photo with marked and labeled pinholes to {os.path.splitext(self.photo_path)[0]}_pinholes.png.")
+            plt.savefig(
+                os.path.splitext(self.photo_path)[0] + "_pinholes.png",
+                bbox_inches="tight",
+                pad_inches=0,
+                dpi=450,
+            )
+            interface.logging.info(
+                f"Saved photo with marked and labeled pinholes to {os.path.splitext(self.photo_path)[0]}_pinholes.png."
+            )
         except:
-            logging.interface.exception(f"Photo with marked and labeled pinholes could not be saved to {os.path.splitext(self.photo_path)[0]}_pinholes.png.")
-            raise Exception(f"Photo with marked and labeled pinholes could not be saved to {os.path.splitext(self.photo_path)[0]}_pinholes.png.")
-        
+            logging.interface.exception(
+                f"Photo with marked and labeled pinholes could not be saved to {os.path.splitext(self.photo_path)[0]}_pinholes.png."
+            )
+            raise Exception(
+                f"Photo with marked and labeled pinholes could not be saved to {os.path.splitext(self.photo_path)[0]}_pinholes.png."
+            )
+
 
 def run_pinholes():
     pinholer = Pinholer(photo.photo)
@@ -336,7 +389,7 @@ def run_pinholes():
     circled_photo = pinholer.create_circled_photo(binarized, labels)
     pinholer.save_image(pinholer.circled_photo, "circled")
     pinholer.save_labeled_photo(circled_photo, details)
-    
+
     print("\a")
 
 
