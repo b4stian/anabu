@@ -61,7 +61,8 @@ files_ignore = [
     "_labels",
     "_masked_cropped",
     "_maskedrg",
-    "_maskview"
+    "_maskview",
+    "_pinholes",
 ]
 
 # property: ["name of property in csv", "default value if not found", "type of value", "explanation of variable"]

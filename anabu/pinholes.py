@@ -30,12 +30,12 @@ import skimage as sm
 CALIBRATION_1 = {
     "name": "Calibration 1",
     "date": "2022-07-09",
-    "threshold": 150,
+    "threshold": 175,
     "parameters": [
-        2.60337386e00,
-        -1.16555323e-02,
-        3.98811005e-05,
-        -4.67029965e-08,
+        2.97879300e+00,
+        -1.16214041e-02,
+        2.67696227e-05,
+        1.79613183e-09,
     ],
     "minimum_size": 6,
     "exposure_time": 30.0,
