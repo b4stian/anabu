@@ -1,6 +1,6 @@
 # anabu
 
-Tool for the automated analysis of photos of Cam Viera samples taken on a back-illumination table.
+Python package for the automated analysis of photos of Cam Viera samples taken on a back-illumination table.
 
 This tool allows for the automated analysis of
 
