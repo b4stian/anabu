@@ -21,7 +21,7 @@ import os
 # ------------------------------------------------
 # parameters
 
-version = "0.6"
+version = "0.7"
 
 # ------------------------------------------------
 # function/class definitions

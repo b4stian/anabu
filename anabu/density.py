@@ -231,6 +231,15 @@ class Evaluator:
             parameter="mean brightness value",
             value=self.brightness_mean,
         )
+        self.brightness_25 = np.percentile(self.grey_photo[self.cropped_mask],25)
+        interface.logging.info(
+            f"The 25th brightness percentile is {self.brightness_25}."
+        )
+        interface.results.add_result(
+            variable="brightness_25",
+            parameter="25th brightness percentile",
+            value=self.brightness_25,
+        )
         self.brightness_median = np.median(self.grey_photo[self.cropped_mask])
         interface.logging.info(
             f"The median brightness value is {self.brightness_median}."
@@ -239,6 +248,15 @@ class Evaluator:
             variable="brightness_median",
             parameter="median brightness value",
             value=self.brightness_median,
+        )
+        self.brightness_75 = np.percentile(self.grey_photo[self.cropped_mask],75)
+        interface.logging.info(
+            f"The 25th brightness percentile is {self.brightness_75}."
+        )
+        interface.results.add_result(
+            variable="brightness_75",
+            parameter="25th brightness percentile",
+            value=self.brightness_75,
         )
         self.brightness_variance = np.var(self.grey_photo[self.cropped_mask])
         interface.logging.info(
@@ -305,18 +323,19 @@ class Evaluator:
             parameter="diversity of brightness distribution",
             value=self.brightness_diversity,
         )
-        for threshold in (95, 90, 75, 50, 25, 10, 2, 1):
+        for threshold in [99, 95, 90, 75, 50, 25, 10, 2, 1, 0.5, 0.25, 0.1]:
             interface.logging.info(
-                f"{str(threshold)}% of pixels have a brightness of over\t {str(np.where((100-self.cumulative_percentage) < threshold)[0][0])}."
+                f"Just over {str(threshold)}% of pixels have a brightness of at least\t {str(np.where((self.cumulative_percentage) >= threshold)[0][0])}."
             )
             interface.results.add_result(
                 variable=f"brightness_{threshold}",
-                parameter=f"brightness which {threshold}% of pixels exceed",
-                value=np.where((100 - self.cumulative_percentage) < threshold)[0][0],
+                parameter=f"brightness which {threshold}% of pixels have at least",
+                value=np.where((self.cumulative_percentage) >= threshold)[0][0],
             )
 
 
 def run_density():
+    global evaluator
     evaluator = Evaluator(photo.photo)
     evaluator.create_grey_photo()
     evaluator.create_brightness_arrays()

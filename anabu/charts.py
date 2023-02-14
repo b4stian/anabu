@@ -6,10 +6,15 @@
 try:
     import interface
     import density
+    import photo
 except:
     from anabu import interface
     from anabu import density
+    from anabu import photo
+import os
+
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FixedLocator, MultipleLocator
 import numpy as np
 import seaborn as sns
 
@@ -24,6 +29,9 @@ FIG_WIDTH = 33.5 * CM
 
 # height of placeholder in pptx
 FIG_HEIGHT = 15 * CM
+
+# distance of ticks in scales in mm
+TICK_DISTANCE = 25
 
 # Kuraray color scheme from branding homepage
 kuracolors_rgb = {
@@ -142,7 +150,24 @@ class Kurascheme:
         color_code_list = [self.colors[color] for color in color_list]
         return sns.color_palette(color_code_list)
 
-    def initialize_sns(self) -> None:
+    def initialize_sns_ticks(self) -> None:
+        """
+        Kuraray brand settings for Seaborn.
+        """
+        sns.set_style("ticks")
+        sns.set_theme(
+            font="Rational Display",
+            style={
+                "axes.facecolor": self.colors["Sunrise Beige 20%"],
+                "text.color": self.colors["Dark Blue"],
+                "axes.labelcolor": self.colors["Dark Blue"],
+                "xtick.color": self.colors["Dark Blue"],
+                "ytick.color": self.colors["Dark Blue"],
+            },
+        )
+        interface.logging.info("Set Kuraray brand settings for plots.")
+
+    def initialize_sns_grid(self) -> None:
         """
         Kuraray brand settings for Seaborn.
         """
@@ -159,21 +184,226 @@ class Kurascheme:
         )
         interface.logging.info("Set Kuraray brand settings for plots.")
 
-    # TODO Draw scalebars around cropped photo.
 
-    # TODO distributions
+def save_photo_scales(
+    photo: photo.Photo, scale_factor: float, tick_distance: int = 25
+) -> None:
+    def create_ticks(
+        photo: np.ndarray, axis: str = "x", px_mm: str = "mm", spacing: int = 10
+    ) -> list:
+        """
+        Returns a list of axis ticks in pixels so that they are round numbers in mm.
+        Spacing is the number of mm between each tick.
+        """
+        ticks_pixels = []
+        if axis == "y":
+            for i in np.arange(photo.shape[0] / 2, -1, -spacing * scale_factor):
+                ticks_pixels.append(i)
+            for i in np.arange(
+                photo.shape[0] / 2, photo.shape[0] + 1, spacing * scale_factor
+            ):
+                ticks_pixels.append(i)
+        elif axis == "x":
+            for i in np.arange(photo.shape[1] / 2, -1, -spacing * scale_factor):
+                ticks_pixels.append(i)
+            for i in np.arange(
+                photo.shape[1] / 2, photo.shape[1] + 1, spacing * scale_factor
+            ):
+                ticks_pixels.append(i)
+        else:
+            raise ValueError("Axis must be 'y' or 'x'.")
+        ticks_pixels.pop(0)
+        ticks_pixels.sort()
+        ticks_mm = []
+        if axis == "y":
+            for i in ticks_pixels:
+                ticks_mm.append(round((i - photo.shape[0] / 2) / scale_factor))
+        elif axis == "x":
+            for i in ticks_pixels:
+                ticks_mm.append(round((i - photo.shape[1] / 2) / scale_factor))
+        else:
+            raise ValueError("Axis must be 'y' or 'x'.")
+        if px_mm == "px":
+            return ticks_pixels
+        elif px_mm == "mm":
+            return ticks_mm
+        else:
+            raise ValueError("px_mm must be 'px' or 'mm'.")
 
-    # ------------------------------------------------
-    # executions
+    plt.clf()
+    sns.set_context("poster", font_scale=0.8)
+    f, ax = plt.subplots(figsize=(FIG_WIDTH, FIG_HEIGHT), constrained_layout=True)
+    # ax.grid(False)
+    yticks = create_ticks(photo.masked_cropped_photo, "y", "px", tick_distance)
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(
+        create_ticks(photo.masked_cropped_photo, "y", "mm", tick_distance)
+    )
+    xticks = create_ticks(photo.masked_cropped_photo, "x", "px", tick_distance)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(
+        create_ticks(photo.masked_cropped_photo, "x", "mm", tick_distance)
+    )
+    ax.tick_params(direction="out", length=10, axis="both")
+    ax.set(xlabel="x position in mm", ylabel="y position in mm")
+    plt.imshow(photo.cropped_photo)
+    plt.savefig(
+        os.path.splitext(photo.photo_path)[0] + "_scale_axes.png",
+        dpi=360,
+    )
+    interface.logging.info(
+        f"Photo with scale axes saved to {os.path.splitext(photo.photo_path)[0] + '_scale_axes.png'}."
+    )
 
-    color_scheme = Kurascheme(kuracolors_rgb)
-    color_scheme.to_hex()
-    kurapalette = color_scheme.palette(palette_list)
-    interface.logging.info("Defined Kuraray color palette")
-    color_scheme.initialize_sns()
 
+def plot_distribution(results: density.Evaluator, path: str) -> None:
+    plt.clf()
+    sns.set_context("talk", font_scale=1)
+    f, axes = plt.subplots(
+        1, 2, figsize=(FIG_WIDTH, FIG_HEIGHT), constrained_layout=True
+    )
+    axes[0].plot(
+        [results.brightness_peak, results.brightness_peak],
+        [0, max(results.brightness_fraction) * 1.05],
+        color=kuracolors_rgb["Sunrise Orange"],
+    )
+    axes[0].plot(
+        [results.brightness_median, results.brightness_median],
+        [0, max(results.brightness_fraction) * 1.05],
+        color=kuracolors_rgb["Lavender"],
+    )
+    axes[0].plot(
+        [results.brightness_mean, results.brightness_mean],
+        [0, max(results.brightness_fraction) * 1.05],
+        color=kuracolors_rgb["Plum"],
+    )
+    axes[0].axvspan(-5, 0, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.66)
+    axes[0].axvspan(
+        results.brightness_min,
+        results.brightness_max,
+        lw=0,
+        facecolor=kuracolors_rgb["Cyan 80%"],
+        alpha=0.15,
+    )
+    axes[0].axvspan(
+        results.brightness_25,
+        results.brightness_75,
+        lw=0,
+        facecolor=kuracolors_rgb["Cyan 80%"],
+        alpha=0.35,
+    )
+    axes[0].axvspan(
+        255, 260, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.65
+    )
+    axes[0].axhspan(
+        -max(results.brightness_fraction),
+        0,
+        lw=0,
+        facecolor=kuracolors_rgb["Sunrise Beige"],
+        alpha=0.65,
+    )
+    sns.lineplot(
+        ax=axes[0],
+        x=results.brightness_array,
+        y=results.brightness_fraction,
+        color=kuracolors_rgb["Dark Blue 80%"],
+        linewidth=3,
+    )
+    axes[0].set(xlabel="brightness", ylabel="fraction of pixels with brightness")
+    axes[0].set_xlim(-5, 260)
+    axes[0].set_ylim(-max(results.brightness_fraction) / 50)
+    axes[0].xaxis.set_major_locator(MultipleLocator(25))
+
+    axes[1].plot(
+        [results.brightness_peak, results.brightness_peak],
+        [0, max(results.cumulative_percentage) * 1.05],
+        color=kuracolors_rgb["Sunrise Orange"],
+    )
+    axes[1].plot(
+        [results.brightness_median, results.brightness_median],
+        [0, max(results.cumulative_percentage) * 1.05],
+        color=kuracolors_rgb["Lavender"],
+    )
+    axes[1].plot(
+        [results.brightness_mean, results.brightness_mean],
+        [0, max(results.cumulative_percentage) * 1.05],
+        color=kuracolors_rgb["Plum"],
+    )
+    axes[1].axvspan(-5, 0, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.65)
+    axes[1].axhspan(
+        max(results.cumulative_percentage),
+        max(results.cumulative_percentage) + 100,
+        lw=0,
+        facecolor=kuracolors_rgb["Sunrise Beige"],
+        alpha=0.65,
+    )
+    axes[1].axvspan(
+        results.brightness_min,
+        results.brightness_max,
+        lw=0,
+        facecolor=kuracolors_rgb["Positive Green"],
+        alpha=0.20,
+    )
+    axes[1].axvspan(
+        results.brightness_25,
+        results.brightness_75,
+        lw=0,
+        facecolor=kuracolors_rgb["Positive Green"],
+        alpha=0.45,
+    )
+    axes[1].axvspan(
+        255, 260, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.65
+    )
+    axes[1].axhspan(
+        -max(results.cumulative_percentage),
+        0,
+        lw=0,
+        facecolor=kuracolors_rgb["Sunrise Beige"],
+        alpha=0.65,
+    )
+    sns.lineplot(
+        ax=axes[1],
+        x=results.brightness_array,
+        y=results.cumulative_percentage,
+        color=kuracolors_rgb["Cyan 80%"],
+        linewidth=3,
+    )
+    axes[1].set(xlabel="brightness", ylabel="percentage of pixels (cumulative)")
+    axes[1].set_xlim(-5, 260)
+    axes[1].set_ylim(
+        -max(results.cumulative_percentage) / 50,
+        max(results.cumulative_percentage) + 15,
+    )
+    axes[1].yaxis.set_major_locator(FixedLocator([i * 10 for i in range(10 + 1)]))
+    axes[1].xaxis.set_major_locator(MultipleLocator(25))
+
+    plt.savefig(
+        path,
+        dpi=360,
+    )
+    interface.logging.info(f"Distribution plot saved to {path}.")
+
+
+# TODO distributions
+
+# ------------------------------------------------
+# executions
+
+color_scheme = Kurascheme(kuracolors_rgb)
+color_scheme.to_hex()
+kurapalette = color_scheme.palette(palette_list)
+interface.logging.info("Defined Kuraray color palette")
 
 is_main = __name__ == "__main__"
 
 if is_main:
-    pass
+    interface.run_interface()
+    photo.run_photo()
+    density.run_density()
+    color_scheme.initialize_sns_ticks()
+    save_photo_scales(photo.photo, photo.SCALE_FACTOR, TICK_DISTANCE)
+    color_scheme.initialize_sns_grid()
+    plot_distribution(
+        density.evaluator,
+        os.path.splitext(photo.photo.photo_path)[0] + "_distribution_plot.png",
+    )

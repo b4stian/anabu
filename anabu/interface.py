@@ -49,7 +49,7 @@ py_path = os.path.abspath(os.curdir)
 settings_try_paths = (f"{py_path}/standard_settings.csv", "anabu/standard_settings.csv")
 
 # files to ignore in batch evaluation
-files_ignore = [
+files_ignore = {
     "_automask",
     "_binarized",
     "_binary_mask",
@@ -63,7 +63,8 @@ files_ignore = [
     "_maskedrg",
     "_maskview",
     "_pinholes",
-]
+    "_scale_axes",
+}
 
 # property: ["name of property in csv", "default value if not found", "type of value", "explanation of variable"]
 # TODO Double-check target values
