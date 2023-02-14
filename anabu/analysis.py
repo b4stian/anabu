@@ -10,11 +10,13 @@ try:
     import photo
     import pinholes
     import density
+    import charts
 except:
     import anabu.interface as interface
     import anabu.photo as photo
     import anabu.pinholes as pinholes
     import anabu.density as density
+    import anabu.charts as charts
 import os
 
 
@@ -45,9 +47,16 @@ def run_analysis_photo():
                 photo.run_photo()
                 pinholes.run_pinholes()
                 density.run_density()
+                charts.run_charts()
                 interface.end_analysis()
             except:
                 interface.logging.info(f"Error trying to evaluate file {file}.")
+    else:
+        photo.run_photo()
+        pinholes.run_pinholes()
+        density.run_density()
+        charts.run_charts()
+        interface.end_analysis()
     interface.logging.info("DONE.")
     print("\a")
 

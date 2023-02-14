@@ -384,7 +384,14 @@ def plot_distribution(results: density.Evaluator, path: str) -> None:
     interface.logging.info(f"Distribution plot saved to {path}.")
 
 
-# TODO distributions
+def run_charts() -> None:
+    color_scheme.initialize_sns_ticks()
+    save_photo_scales(photo.photo, photo.SCALE_FACTOR, TICK_DISTANCE)
+    color_scheme.initialize_sns_grid()
+    plot_distribution(
+        density.evaluator,
+        os.path.splitext(photo.photo.photo_path)[0] + "_distribution_plot.png",
+    )
 
 # ------------------------------------------------
 # executions

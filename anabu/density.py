@@ -64,36 +64,36 @@ class Evaluator:
                     f"Attribute {attr} missing in {photo}. Cannot initiate Evaluator object."
                 )
         interface.logging.info(f"Initiated Evaluator object for {self.sample_name}.")
-        self.calibration = CALIBRATION_A
+        self.calibration_density = CALIBRATION_A
         interface.results.add_result(
-            variable="calibration_name",
-            parameter="name of selected calibration",
-            value=self.calibration["name"],
+            variable="calibration_density_name",
+            parameter="name of selected calibration for optical density",
+            value=self.calibration_density["name"],
         )
         interface.results.add_result(
-            variable="calibration_date",
-            parameter="creation date of selected calibration",
-            value=self.calibration["date"],
+            variable="calibration_density_date",
+            parameter="creation date of selected calibration for optical density",
+            value=self.calibration_density["date"],
         )
         interface.results.add_result(
-            variable="calibration_parameters",
-            parameter="parameters of selected calibration",
-            value=self.calibration["parameters"],
+            variable="calibration_density_parameters",
+            parameter="parameters of selected calibration for optical density",
+            value=self.calibration_density["parameters"],
         )
         interface.results.add_result(
-            variable="calibration_exposure_time",
-            parameter="exposure time used for creating calibration",
-            value=self.calibration["exposure_time"],
+            variable="calibration_density_exposure_time",
+            parameter="exposure time used for creating calibration for optical density",
+            value=self.calibration_density["exposure_time"],
         )
         interface.logging.info(
-            f'Selected calibration "{self.calibration["name"]}", created on {self.calibration["date"]}.'
+            f'Selected calibration for optical density "{self.calibration_density["name"]}", created on {self.calibration_density["date"]}.'
         )
-        if self.calibration["exposure_time"] != interface.results.ExposureTime["value"]:
+        if self.calibration_density["exposure_time"] != interface.results.ExposureTime["value"]:
             interface.logging.exception(
-                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.ExposureTime['value']}."
+                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration_density['exposure_time']}, photo: {interface.results.ExposureTime['value']}."
             )
             raise Exception(
-                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.ExposureTime['value']}."
+                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration_density['exposure_time']}, photo: {interface.results.ExposureTime['value']}."
             )
 
     def create_grey_photo(self) -> np.ndarray:
@@ -314,14 +314,14 @@ class Evaluator:
             parameter="brightness-squared weighted mean of brightness distribution",
             value=self.brightness_2_weighted_mean,
         )
-        self.brightness_diversity = self.brightness_weighted_mean / self.brightness_mean
+        self.brightness_dispersity = self.brightness_weighted_mean / self.brightness_mean
         interface.logging.info(
-            f"The diversity of the brightness distribution is {round(self.brightness_diversity,2)}."
+            f"The dispersity of the brightness distribution is {round(self.brightness_dispersity,2)}."
         )
         interface.results.add_result(
-            variable="brightness_diversity",
-            parameter="diversity of brightness distribution",
-            value=self.brightness_diversity,
+            variable="brightness_dispersity",
+            parameter="dispersity of brightness distribution",
+            value=self.brightness_dispersity,
         )
         for threshold in [99, 95, 90, 75, 50, 25, 10, 2, 1, 0.5, 0.25, 0.1]:
             interface.logging.info(

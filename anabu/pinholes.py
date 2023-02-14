@@ -77,57 +77,57 @@ class Pinholer:
                 )
         interface.logging.info(f"Initiated Pinholer object for {self.sample_name}.")
         # TODO select best calibration based on photo details or via input.
-        self.calibration = CALIBRATION_1
-        self.minimum_size_calibration = self.conv_pixel_diameter(
-            self.calibration["minimum_size"]
+        self.calibration_pinholes = CALIBRATION_1
+        self.minimum_size_calibration_pinholes = self.conv_pixel_diameter(
+            self.calibration_pinholes["minimum_size"]
         )
         interface.results.add_result(
-            variable="calibration_name",
-            parameter="name of selected calibration",
-            value=self.calibration["name"],
+            variable="calibration_pinholes_name",
+            parameter="name of selected calibration for pinholes",
+            value=self.calibration_pinholes["name"],
         )
         interface.results.add_result(
-            variable="calibration_date",
-            parameter="creation date of selected calibration",
-            value=self.calibration["date"],
+            variable="calibration_pinholes_date",
+            parameter="creation date of selected calibration for pinholes",
+            value=self.calibration_pinholes["date"],
         )
         interface.results.add_result(
-            variable="calibration_threshold",
-            parameter="threshold of selected calibration",
-            value=self.calibration["threshold"],
+            variable="calibration_pinholes_threshold",
+            parameter="threshold of selected calibration for pinholes",
+            value=self.calibration_pinholes["threshold"],
         )
         interface.results.add_result(
-            variable="calibration_parameters",
-            parameter="parameters of selected calibration",
-            value=self.calibration["parameters"],
+            variable="calibration_pinholes_parameters",
+            parameter="parameters of selected calibration for pinholes",
+            value=self.calibration_pinholes["parameters"],
         )
         interface.results.add_result(
-            variable="calibration_minimum_pixels",
-            parameter="minimum size (pixels) of selected calibration",
-            value=self.calibration["minimum_size"],
+            variable="calibration_pinholes_minimum_pixels",
+            parameter="minimum size (pixels) of selected calibration for pinholes",
+            value=self.calibration_pinholes["minimum_size"],
         )
         interface.results.add_result(
-            variable="calibration_minimum_size",
-            parameter="minimum size (microns) of selected calibration",
-            value=self.minimum_size_calibration,
+            variable="calibration_pinholes_minimum_size",
+            parameter="minimum size (microns) of selected calibration for pinholes",
+            value=self.minimum_size_calibration_pinholes,
         )
         interface.results.add_result(
-            variable="calibration_exposure_time",
-            parameter="exposure time used for creating calibration",
-            value=self.calibration["exposure_time"],
+            variable="calibration_pinholes_exposure_time",
+            parameter="exposure time used for creating calibration for pinholes",
+            value=self.calibration_pinholes["exposure_time"],
         )
         interface.logging.info(
-            f"Selected calibration '{self.calibration['name']}, created on {self.calibration['date']}'."
+            f"Selected calibration for pinholes'{self.calibration_pinholes['name']}, created on {self.calibration_pinholes['date']}'."
         )
         interface.logging.info(
-            f"Minimum pinhole diameter detectable with calibration is {round(self.minimum_size_calibration, 1)} µm."
+            f"Minimum pinhole diameter detectable with calibration is {round(self.minimum_size_calibration_pinholes, 1)} µm."
         )
-        if self.calibration["exposure_time"] != interface.results.ExposureTime["value"]:
+        if self.calibration_pinholes["exposure_time"] != interface.results.ExposureTime["value"]:
             interface.logging.exception(
-                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}."
+                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration_pinholes['exposure_time']}, photo: {interface.results.exposure_time['value']}."
             )
             raise Exception(
-                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration['exposure_time']}, photo: {interface.results.exposure_time['value']}."
+                f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration_pinholes['exposure_time']}, photo: {interface.results.exposure_time['value']}."
             )
 
     def conv_pixel_diameter(self, x: float) -> float:
@@ -142,17 +142,17 @@ class Pinholer:
             float: diameter in micrometers
         """
         diameter = (
-            self.calibration["parameters"][0] * x
-            + self.calibration["parameters"][1] * x * x
-            + self.calibration["parameters"][2] * x * x * x
-            + self.calibration["parameters"][3] * x * x * x * x
+            self.calibration_pinholes["parameters"][0] * x
+            + self.calibration_pinholes["parameters"][1] * x * x
+            + self.calibration_pinholes["parameters"][2] * x * x * x
+            + self.calibration_pinholes["parameters"][3] * x * x * x * x
         )
         return diameter
 
     def binarize_photo(self) -> np.ndarray:
         gray_photo = sm.util.img_as_ubyte(sm.color.rgb2gray(self.cropped_photo))
         binarized_photo = (
-            gray_photo > self.calibration["threshold"]
+            gray_photo > self.calibration_pinholes["threshold"]
         ) * self.cropped_mask
         self.binarized_photo = binarized_photo != 0  # make boolean
         interface.logging.info(f"Created binarized (cropped) photo.")
@@ -162,12 +162,12 @@ class Pinholer:
         big_holes = np.invert(
             sm.morphology.remove_small_holes(
                 np.invert(photo),
-                area_threshold=self.calibration["minimum_size"],
+                area_threshold=self.calibration_pinholes["minimum_size"],
             )
         )
         self.holes = big_holes
         interface.logging.info(
-            f"Created black photo with holes bigger than {self.calibration['minimum_size']} pixels."
+            f"Created black photo with holes bigger than {self.calibration_pinholes['minimum_size']} pixels."
         )
         return self.holes
 
