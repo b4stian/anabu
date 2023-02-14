@@ -45,7 +45,8 @@ def run_analysis_photo():
             interface.user_settings.photo_file["value"] = file
             try:
                 photo.run_photo()
-                pinholes.run_pinholes()
+                if interface.user_settings.pinholes["value"]:
+                    pinholes.run_pinholes()
                 density.run_density()
                 charts.run_charts()
                 interface.end_analysis()
@@ -53,7 +54,8 @@ def run_analysis_photo():
                 interface.logging.info(f"Error trying to evaluate file {file}.")
     else:
         photo.run_photo()
-        pinholes.run_pinholes()
+        if interface.user_settings.pinholes["value"]:
+            pinholes.run_pinholes()
         density.run_density()
         charts.run_charts()
         interface.end_analysis()

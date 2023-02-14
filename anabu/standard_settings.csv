@@ -2,25 +2,25 @@
 
 "operator", "Bastian", "Name of the operator executing the script for documentation."
 "sample_name", "", "Sample name. Will use file name of photo if not specified."
-"photo_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Dokumente\Projects\Black Printed Thin Film\anabu\Auswertung 12\W4-2228.JPG", "Path to the photo file. If not found, will use dialog for selection."
-"batch_evaluation", False, "batch evaluate all photos in photo_folder"
-"photo_folder", "", "folder for batch batch evaluation"
+"photo_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Dokumente\Projects\Black Printed Thin Film\anabu\2022-12 neue KL\W4-2228 (OD = 3,468).JPG", "Path to the photo file. If not found, will use dialog for selection."
+"batch_evaluation", True, "batch evaluate all photos in photo_folder"
+"photo_folder", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Dokumente\Projects\Black Printed Thin Film\anabu\2022-12 neue KL\", "folder for batch batch evaluation"
 
 "flip", False, "flip photo (rotate by 180°)"
 "autorotate", True, "automatically rotate photo so that main axis is horizontal"
 "automask", False, "If True use automask, if False, try mask_file, then use dialog for selection."
-"automask_save", True, "save automask"
+"automask_save", False, "save automask"
 "automask_grow", 0.65, "growing of automask (0.5 <= grow < 1)"
-"binarize_auto", True,"automatically perform binarization in automask"
-"binarize_threshold", 100, "threshold for photo binarization (0-254) in automask if binarize_auto = False"
+"binarize_auto", False,"automatically perform binarization in automask"
+"binarize_threshold", 50, "threshold for photo binarization (0-254) in automask if binarize_auto = False"
 "maskview", "save", "don't save maskview (None), save maskview ('save') or prompt user if ok ('prompt')"
-"mask_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Dokumente\Projects\Black Printed Thin Film\anabu\Auswertung 12\W4-2228_automask.tiff", "Path to the mask file (if automask = False). If not found, will use dialog for selection."
+"mask_file", "C:\Users\Ebeling\OneDrive - Kuraray Co., Ltd\Dokumente\Projects\Black Printed Thin Film\anabu\2022-12 neue KL\W4-2228 (OD = 3,468)_automask.tiff", "Path to the mask file (if automask = False). If not found, will use dialog for selection."
 "autocrop", True, "automatically crop photo to patch based on mask when True"
 "autocrop_margin", 40, "margin for autocrop in pixels"
 "autocrop_save", "masked", "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')"
 
-"pinholes", True, "automatically evaluate pinholes",
-"export_distribution", False, "exports csv with distribution",
+"pinholes", False, "automatically evaluate pinholes",
+"export_distribution", True, "exports csv with distribution",
 "create_ppt", False, "If true, create ppt with main results."
 
 "target_Make", "SONY", "Target EXIF tag for photo file. Will not run if different tags are found."
