@@ -377,6 +377,9 @@ class Pinholer:
 
 
 def run_pinholes():
+    if not interface.user_settings.pinholes["value"]:
+        interface.logging.info("Pinhole analyzer disabled.")
+        return
     pinholer = Pinholer(photo.photo)
     pinholer.set_steps()
     binarized = pinholer.binarize_photo()

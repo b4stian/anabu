@@ -25,9 +25,14 @@ import logging
 import os
 from shutil import copy2
 from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
+import PySimpleGUI as sg
+
 
 # ------------------------------------------------
 # variables
+
+# version number of anabu
+VERSION = "0.8"
 
 # date string for filenames
 date_string = (
@@ -64,6 +69,7 @@ files_ignore = {
     "_maskview",
     "_pinholes",
     "_scale_axes",
+    "_distribution_plot",
 }
 
 # property: ["name of property in csv", "default value if not found", "type of value", "explanation of variable"]
@@ -649,6 +655,11 @@ def run_interface() -> None:
     results = Results()
     settings_path = Settings.set_settings_path(*settings_try_paths)
     user_settings = Settings(settings_path, settings_dict)
+    results.add_result(
+        variable="version",
+        parameter="version of anabu",
+        value=VERSION,
+    )
     results.settings_to_results(user_settings)
     if user_settings.batch_evaluation["value"]:
         try:
@@ -677,4 +688,18 @@ def run_interface() -> None:
 set_up_logging()
 
 if is_main:
+    sg.theme('BlueMono')
+    layout = [  [sg.Text('Some text on Row 1')],
+            [sg.Text('Enter something on Row 2'), sg.InputText()],
+            [sg.Button('Ok'), sg.Button('Cancel')] ]
+    # Create the Window
+    window = sg.Window(f'anabu v. {VERSION}', layout, icon=r'logo/logo.ico')
+    # Event Loop to process "events" and get the "values" of the inputs
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+            break
+        print('You entered ', values[0])
+
+    window.close()
     run_interface()

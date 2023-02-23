@@ -754,7 +754,7 @@ class Photo:
                 tuple: top, bottom, left, and right borders
             """
             # get the indices of the non-zero elements in the mask (patch area)
-            self.save_image(binary_mask, "binary_mask")
+            # self.save_image(binary_mask, "binary_mask")
             indices_not_masked = np.nonzero(binary_mask)
             indices_y = indices_not_masked[0]  # indices along the first axis
             indices_x = np.sort(

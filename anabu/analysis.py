@@ -11,19 +11,15 @@ try:
     import pinholes
     import density
     import charts
+    import ppt
 except:
     import anabu.interface as interface
     import anabu.photo as photo
     import anabu.pinholes as pinholes
     import anabu.density as density
     import anabu.charts as charts
+    import anabu.ppt as ppt
 import os
-
-
-# ------------------------------------------------
-# parameters
-
-version = "0.7"
 
 # ------------------------------------------------
 # function/class definitions
@@ -33,11 +29,12 @@ def run_analysis_photo():
     """Runs the whole analysis script."""
     interface.set_up_logging()
     interface.logging.info("--------------------------------------------------------")
-    interface.logging.info(f"anabu {str(version)}. Process started.")
+    interface.logging.info(f"anabu {str(interface.VERSION)}. Process started.")
     interface.logging.info("--------------------------------------------------------")
     interface.logging.info(
         "In case of problems with this tool contact bastian.ebeling@kuraray.com."
     )
+    interface.logging
     interface.logging.info("Main imports successful.")
     interface.run_interface()
     if interface.user_settings.batch_evaluation["value"]:
@@ -48,6 +45,7 @@ def run_analysis_photo():
                 pinholes.run_pinholes()
                 density.run_density()
                 charts.run_charts()
+                ppt.run_pptx()
                 interface.end_analysis()
             except:
                 interface.logging.info(f"Error trying to evaluate file {file}.")
@@ -56,6 +54,7 @@ def run_analysis_photo():
         pinholes.run_pinholes()
         density.run_density()
         charts.run_charts()
+        ppt.run_pptx()
         interface.end_analysis()
     interface.logging.info("DONE.")
     print("\a")

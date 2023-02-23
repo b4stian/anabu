@@ -1,0 +1,113 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "C:/Users/Ebeling/OneDrive - Kuraray Co., Ltd/Dokumente/org/git repositories/anabu/anabu.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": true
+  },
+  {
+   "optionDest": "console",
+   "value": true
+  },
+  {
+   "optionDest": "icon_file",
+   "value": "C:/Users/Ebeling/OneDrive - Kuraray Co., Ltd/Dokumente/org/git repositories/anabu/logo/logo.ico"
+  },
+  {
+   "optionDest": "ascii",
+   "value": false
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "embed_manifest",
+   "value": true
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "win_private_assemblies",
+   "value": false
+  },
+  {
+   "optionDest": "win_no_prefer_redirects",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "skimage.io"
+  },
+  {
+   "optionDest": "python_options",
+   "value": ""
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "skimage.morphology"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "skimage.util"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "skimage.filters"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "skimage.measure"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "skimage.transform"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Ebeling/OneDrive - Kuraray Co., Ltd/Dokumente/org/git repositories/anabu/anabu/standard_settings.csv;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Ebeling/OneDrive - Kuraray Co., Ltd/Dokumente/org/git repositories/anabu/ppt/PPT_master.pptx;."
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}

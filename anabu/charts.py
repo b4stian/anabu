@@ -4,19 +4,20 @@
 # imports
 
 try:
-    import interface
     import density
+    import interface
     import photo
 except:
     from anabu import interface
     from anabu import density
     from anabu import photo
+
 import os
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FixedLocator, MultipleLocator
 import numpy as np
 import seaborn as sns
+from matplotlib.ticker import FixedLocator, MultipleLocator
 
 # ------------------------------------------------
 # variables
@@ -31,7 +32,7 @@ FIG_WIDTH = 33.5 * CM
 FIG_HEIGHT = 15 * CM
 
 # distance of ticks in scales in mm
-TICK_DISTANCE = 25
+TICK_DISTANCE = 20
 
 # Kuraray color scheme from branding homepage
 kuracolors_rgb = {
@@ -124,7 +125,7 @@ class Kurascheme:
             raise ValueError(
                 f"Expecting dictionary with RGB tuples. Check your color scheme. {colors}"
             )
-        self.colors = colors
+        self.colors = colors.copy()
 
     def __repr__(self) -> str:
         return f"Kuraray color scheme: {str(self.colors)}"
@@ -265,48 +266,50 @@ def plot_distribution(results: density.Evaluator, path: str) -> None:
     axes[0].plot(
         [results.brightness_peak, results.brightness_peak],
         [0, max(results.brightness_fraction) * 1.05],
-        color=kuracolors_rgb["Sunrise Orange"],
+        color=color_scheme.colors["Sunrise Orange"],
     )
     axes[0].plot(
         [results.brightness_median, results.brightness_median],
         [0, max(results.brightness_fraction) * 1.05],
-        color=kuracolors_rgb["Lavender"],
+        color=color_scheme.colors["Lavender"],
     )
     axes[0].plot(
         [results.brightness_mean, results.brightness_mean],
         [0, max(results.brightness_fraction) * 1.05],
-        color=kuracolors_rgb["Plum"],
+        color=color_scheme.colors["Plum"],
     )
-    axes[0].axvspan(-5, 0, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.66)
+    axes[0].axvspan(
+        -5, 0, lw=0, facecolor=color_scheme.colors["Sunrise Beige"], alpha=0.66
+    )
     axes[0].axvspan(
         results.brightness_min,
         results.brightness_max,
         lw=0,
-        facecolor=kuracolors_rgb["Cyan 80%"],
+        facecolor=color_scheme.colors["Cyan 80%"],
         alpha=0.15,
     )
     axes[0].axvspan(
         results.brightness_25,
         results.brightness_75,
         lw=0,
-        facecolor=kuracolors_rgb["Cyan 80%"],
+        facecolor=color_scheme.colors["Cyan 80%"],
         alpha=0.35,
     )
     axes[0].axvspan(
-        255, 260, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.65
+        255, 260, lw=0, facecolor=color_scheme.colors["Sunrise Beige"], alpha=0.65
     )
     axes[0].axhspan(
         -max(results.brightness_fraction),
         0,
         lw=0,
-        facecolor=kuracolors_rgb["Sunrise Beige"],
+        facecolor=color_scheme.colors["Sunrise Beige"],
         alpha=0.65,
     )
     sns.lineplot(
         ax=axes[0],
         x=results.brightness_array,
         y=results.brightness_fraction,
-        color=kuracolors_rgb["Dark Blue 80%"],
+        color=color_scheme.colors["Dark Blue 80%"],
         linewidth=3,
     )
     axes[0].set(xlabel="brightness", ylabel="fraction of pixels with brightness")
@@ -317,55 +320,57 @@ def plot_distribution(results: density.Evaluator, path: str) -> None:
     axes[1].plot(
         [results.brightness_peak, results.brightness_peak],
         [0, max(results.cumulative_percentage) * 1.05],
-        color=kuracolors_rgb["Sunrise Orange"],
+        color=color_scheme.colors["Sunrise Orange"],
     )
     axes[1].plot(
         [results.brightness_median, results.brightness_median],
         [0, max(results.cumulative_percentage) * 1.05],
-        color=kuracolors_rgb["Lavender"],
+        color=color_scheme.colors["Lavender"],
     )
     axes[1].plot(
         [results.brightness_mean, results.brightness_mean],
         [0, max(results.cumulative_percentage) * 1.05],
-        color=kuracolors_rgb["Plum"],
+        color=color_scheme.colors["Plum"],
     )
-    axes[1].axvspan(-5, 0, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.65)
+    axes[1].axvspan(
+        -5, 0, lw=0, facecolor=color_scheme.colors["Sunrise Beige"], alpha=0.65
+    )
     axes[1].axhspan(
         max(results.cumulative_percentage),
         max(results.cumulative_percentage) + 100,
         lw=0,
-        facecolor=kuracolors_rgb["Sunrise Beige"],
+        facecolor=color_scheme.colors["Sunrise Beige"],
         alpha=0.65,
     )
     axes[1].axvspan(
         results.brightness_min,
         results.brightness_max,
         lw=0,
-        facecolor=kuracolors_rgb["Positive Green"],
+        facecolor=color_scheme.colors["Positive Green"],
         alpha=0.20,
     )
     axes[1].axvspan(
         results.brightness_25,
         results.brightness_75,
         lw=0,
-        facecolor=kuracolors_rgb["Positive Green"],
+        facecolor=color_scheme.colors["Positive Green"],
         alpha=0.45,
     )
     axes[1].axvspan(
-        255, 260, lw=0, facecolor=kuracolors_rgb["Sunrise Beige"], alpha=0.65
+        255, 260, lw=0, facecolor=color_scheme.colors["Sunrise Beige"], alpha=0.65
     )
     axes[1].axhspan(
         -max(results.cumulative_percentage),
         0,
         lw=0,
-        facecolor=kuracolors_rgb["Sunrise Beige"],
+        facecolor=color_scheme.colors["Sunrise Beige"],
         alpha=0.65,
     )
     sns.lineplot(
         ax=axes[1],
         x=results.brightness_array,
         y=results.cumulative_percentage,
-        color=kuracolors_rgb["Cyan 80%"],
+        color=color_scheme.colors["Cyan 80%"],
         linewidth=3,
     )
     axes[1].set(xlabel="brightness", ylabel="percentage of pixels (cumulative)")
@@ -385,6 +390,11 @@ def plot_distribution(results: density.Evaluator, path: str) -> None:
 
 
 def run_charts() -> None:
+    global color_scheme
+    color_scheme = Kurascheme(kuracolors_rgb)
+    color_scheme.to_hex()
+    kurapalette = color_scheme.palette(palette_list)
+    interface.logging.info("Defined Kuraray color palette.")
     color_scheme.initialize_sns_ticks()
     save_photo_scales(photo.photo, photo.SCALE_FACTOR, TICK_DISTANCE)
     color_scheme.initialize_sns_grid()
@@ -393,13 +403,9 @@ def run_charts() -> None:
         os.path.splitext(photo.photo.photo_path)[0] + "_distribution_plot.png",
     )
 
+
 # ------------------------------------------------
 # executions
-
-color_scheme = Kurascheme(kuracolors_rgb)
-color_scheme.to_hex()
-kurapalette = color_scheme.palette(palette_list)
-interface.logging.info("Defined Kuraray color palette")
 
 is_main = __name__ == "__main__"
 
@@ -407,10 +413,4 @@ if is_main:
     interface.run_interface()
     photo.run_photo()
     density.run_density()
-    color_scheme.initialize_sns_ticks()
-    save_photo_scales(photo.photo, photo.SCALE_FACTOR, TICK_DISTANCE)
-    color_scheme.initialize_sns_grid()
-    plot_distribution(
-        density.evaluator,
-        os.path.splitext(photo.photo.photo_path)[0] + "_distribution_plot.png",
-    )
+    run_charts()

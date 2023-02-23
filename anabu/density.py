@@ -27,12 +27,25 @@ import skimage as sm
 # calibration for brightness/optical density
 CALIBRATION_A = {
     "name": "Calibration A",
-    "date": "2022-11-25",
+    "date": "2023-02-22",
     "parameters": [
-        2.60337386e00,
-        -1.16555323e-02,
-        3.98811005e-05,
-        -4.67029965e-08,
+        (254.99999999999986, 0.0),
+        (254.97884214253884, 2.144),
+        (179.62991560227036, 3.321),
+        (100.3155623762223, 3.808),
+        (83.99359301605978, 3.918),
+        (82.15923041283685, 3.947),
+        (39.96343977596004, 4.422),
+        (36.24442322391781, 4.435),
+        (29.2106679282811, 4.495),
+        (26.473770420634942, 4.615),
+        (26.335230269520142, 4.645),
+        (24.72575704825937, 4.666),
+        (24.182287446540485, 4.669),
+        (20.817865606171484, 4.754),
+        (16.954580589831643, 4.8),
+        (4.681635540516993, 5.305),
+        (1.9584211906741886, 5.7),
     ],
     "exposure_time": 30.0,
 }
@@ -88,7 +101,10 @@ class Evaluator:
         interface.logging.info(
             f'Selected calibration for optical density "{self.calibration_density["name"]}", created on {self.calibration_density["date"]}.'
         )
-        if self.calibration_density["exposure_time"] != interface.results.ExposureTime["value"]:
+        if (
+            self.calibration_density["exposure_time"]
+            != interface.results.ExposureTime["value"]
+        ):
             interface.logging.exception(
                 f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration_density['exposure_time']}, photo: {interface.results.ExposureTime['value']}."
             )
@@ -123,7 +139,7 @@ class Evaluator:
         assert np.sum(self.brightness_counts) == self.number_total_pixels
         assert len(self.brightness_counts) == 256
         self.brightness_fraction = self.brightness_counts / self.number_total_pixels
-        assert np.sum(self.brightness_fraction) == 1
+        assert round(np.sum(self.brightness_fraction), 10) == 1
         self.brightness_cumulative = np.array(
             [
                 np.count_nonzero((self.grey_photo < i + 1) * self.cropped_mask)
@@ -192,6 +208,13 @@ class Evaluator:
                 sum3 = sum3 + array[x] * x * x * x
             return sum3 / sum2
 
+        def mean_1_4(array: np.ndarray) -> float:
+            sum1, sum2 = 0, 0
+            for x in range(len(array)):
+                sum1 = sum1 + array[x] * (x**0.4)
+                sum2 = sum2 + array[x] * (x**1.4)
+            return sum2 / sum1
+
         self.brightness_min = np.min(self.grey_photo[self.cropped_mask])
         interface.logging.info(
             f"The minimum brightness value is {self.brightness_min}."
@@ -231,7 +254,7 @@ class Evaluator:
             parameter="mean brightness value",
             value=self.brightness_mean,
         )
-        self.brightness_25 = np.percentile(self.grey_photo[self.cropped_mask],25)
+        self.brightness_25 = np.percentile(self.grey_photo[self.cropped_mask], 25)
         interface.logging.info(
             f"The 25th brightness percentile is {self.brightness_25}."
         )
@@ -249,7 +272,7 @@ class Evaluator:
             parameter="median brightness value",
             value=self.brightness_median,
         )
-        self.brightness_75 = np.percentile(self.grey_photo[self.cropped_mask],75)
+        self.brightness_75 = np.percentile(self.grey_photo[self.cropped_mask], 75)
         interface.logging.info(
             f"The 25th brightness percentile is {self.brightness_75}."
         )
@@ -273,7 +296,7 @@ class Evaluator:
         )
         interface.results.add_result(
             variable="brightness_stdev",
-            parameter="standard distribution of brightness distribution",
+            parameter="standard deviation of brightness distribution",
             value=self.brightness_stdev,
         )
         self.brightness_skew = scipy.stats.skew(self.grey_photo[self.cropped_mask])
@@ -314,7 +337,18 @@ class Evaluator:
             parameter="brightness-squared weighted mean of brightness distribution",
             value=self.brightness_2_weighted_mean,
         )
-        self.brightness_dispersity = self.brightness_weighted_mean / self.brightness_mean
+        self.brightness_1_4_weighted_mean = mean_1_4(self.brightness_fraction)
+        interface.logging.info(
+            f"The brightness-weighted mean (1.4) of the brightness distribution is {round(self.brightness_1_4_weighted_mean,2)}."
+        )
+        interface.results.add_result(
+            variable="brightness_1_4_weighted_mean",
+            parameter="brightness-1.4 weighted mean of brightness distribution",
+            value=self.brightness_1_4_weighted_mean,
+        )
+        self.brightness_dispersity = (
+            self.brightness_weighted_mean / self.brightness_mean
+        )
         interface.logging.info(
             f"The dispersity of the brightness distribution is {round(self.brightness_dispersity,2)}."
         )
@@ -333,6 +367,78 @@ class Evaluator:
                 value=np.where((self.cumulative_percentage) >= threshold)[0][0],
             )
 
+    def calculate_OD(self) -> float:
+        if (
+            self.brightness_1_4_weighted_mean
+            > self.calibration_density["parameters"][0][0]
+        ):
+            print(
+                "Sample is brighter than brightest calibration sample. Cannot convert to optical density."
+            )
+            return None
+        if (
+            self.brightness_1_4_weighted_mean
+            < self.calibration_density["parameters"][-1][0]
+        ):
+            print(
+                "Sample is darker than darkest calibration sample. Cannot convert to optical density."
+            )
+            return None
+        for i in range(len(self.calibration_density["parameters"])):
+            if (
+                self.brightness_1_4_weighted_mean
+                == self.calibration_density["parameters"][i][0]
+            ):
+                optical_density = self.calibration_density["parameters"][i][1]
+                self.optical_density = round(optical_density,3)
+                interface.results.add_result(
+                    variable="optical_density",
+                    parameter="average optical density of sample",
+                    value=self.optical_density,
+                )
+                interface.logging.info(
+                    f"The average optical density of the sample is {self.optical_density}"
+                )
+                return self.optical_density
+        index_above = min(
+            range(len(self.calibration_density["parameters"])),
+            key=lambda x: self.calibration_density["parameters"][x][0]
+            - self.brightness_1_4_weighted_mean
+            if self.calibration_density["parameters"][x][0]
+            - self.brightness_1_4_weighted_mean
+            > 0
+            else 256,
+        )
+        index_below = min(
+            range(len(self.calibration_density["parameters"])),
+            key=lambda x: self.brightness_1_4_weighted_mean
+            - self.calibration_density["parameters"][x][0]
+            if self.brightness_1_4_weighted_mean
+            - self.calibration_density["parameters"][x][0]
+            > 0
+            else 256,
+        )
+        assert index_above == index_below - 1
+        optical_density = self.calibration_density["parameters"][index_above][1] - (
+            self.calibration_density["parameters"][index_above][0] - self.brightness_1_4_weighted_mean
+        ) / (
+            self.calibration_density["parameters"][index_above][0]
+            - self.calibration_density["parameters"][index_below][0]
+        ) * (
+            self.calibration_density["parameters"][index_above][1]
+            - self.calibration_density["parameters"][index_below][1]
+        )
+        self.optical_density = round(optical_density, 3)
+        interface.results.add_result(
+            variable="optical_density",
+            parameter="average optical density of sample",
+            value=self.optical_density,
+        )
+        interface.logging.info(
+            f"The average optical density of the sample is {self.optical_density}"
+        )
+        return self.optical_density
+
 
 def run_density():
     global evaluator
@@ -340,6 +446,7 @@ def run_density():
     evaluator.create_grey_photo()
     evaluator.create_brightness_arrays()
     evaluator.calculate_distribution_params()
+    evaluator.calculate_OD()
     evaluator.export_distributions()
 
 
