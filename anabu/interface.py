@@ -682,24 +682,319 @@ def run_interface() -> None:
         logging.info(f"Found {len(file_list)} photos for batch evaluation: {file_list}")
 
 
+class Handler(logging.StreamHandler):
+    def __init__(self):
+        logging.StreamHandler.__init__(self)
+
+    def emit(self, record):
+        global buffer
+        record = f"{record.asctime} [{record.levelname}]: {record.message}"
+        buffer = f"{buffer}\n{str(record)}".strip()
+        window["log"].update(value=buffer)
+
+
 # ------------------------------------------------
 # executions
 
-set_up_logging()
+sg.theme("SystemDefault")
 
-if is_main:
-    sg.theme('BlueMono')
-    layout = [  [sg.Text('Some text on Row 1')],
-            [sg.Text('Enter something on Row 2'), sg.InputText()],
-            [sg.Button('Ok'), sg.Button('Cancel')] ]
+general_frame = sg.Frame(
+    "General",
+    [
+        [
+            sg.Text("operator \u2753 ", tooltip="Name of operator for documentation."),
+            sg.Input(key="operator", default_text="not defined", size= (1,1),expand_x = True)
+        ],
+        [
+            sg.Text(
+                "mask file: \u2753 ",
+                key="file_text",
+                tooltip="Select a photo file for evaluation.",
+            ),
+            sg.Input(key="photo_file", size= (1,1),expand_x = True),
+            sg.FileBrowse(
+                file_types=(("Image Files", "*.jpg *.jpeg *.tiff *.png"),),
+                key="photo_file_input",
+            ),
+        ],
+        [
+            sg.Text("sample name \u2753 ", tooltip="Name of the sample for single photo evaluation. \nIf left empty, the name of the photo file will be used."),
+            sg.Input(key="sample name", default_text="", size= (1,1),expand_x = True)
+        ],
+        [
+            sg.Checkbox(
+                "batch evaluation \u2753",
+                enable_events=True,
+                key="batch_evaluation",
+                tooltip="Evaluate all files in a folder.",
+            )
+        ],
+        [
+            sg.Text(
+                "photos folder: \u2753 ",
+                key="file_text",
+                tooltip="Select a folder for batch evaluation of all contained photo files \n(if activated).",
+            ),
+            sg.Input(key="photo_folder", size= (1,1),expand_x = True),
+            sg.FolderBrowse(
+                key="photo_folder_input",
+            ),
+        ],
+    ],
+    expand_x = True
+)
+
+mask_frame = sg.Frame(
+    "Mask",
+    [
+        [
+            sg.Text(
+                "mask file: \u2753 ",
+                key="mask_text",
+                tooltip="Select mask for photo from disc, if you have one.",
+            ),
+            sg.Input(key="mask_file", size= (1,1),expand_x = True),
+            sg.FileBrowse(
+                file_types=(("Image Files", "*.jpg *.jpeg *.tiff *.png"),),
+                key="mask_file_input",
+            ),
+        ],
+        [
+            sg.Checkbox(
+                "use automask \u2753",
+                enable_events=True,
+                key="automask",
+                tooltip="Automatically generate a mask file. \nPreferred method if you don't have one yet.",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "save automask \u2753",
+                key="automask_save",
+                disabled=True,
+                tooltip="Save the automatically generated mask to a file \n(typically for use with other photos).",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "auto binarize  \u2753",
+                key="binarize_auto",
+                disabled=True,
+                tooltip="Automatically determine the threshold for binarization in automask. \nTry manual if it doesn't work",
+            )
+        ],
+        [
+            sg.Text(
+                "binarization threshold: \u2753 ",
+                tooltip="Manual threshold brightness value for binarization in automask. \nIgnored if auto binarization is used.",
+            ),
+            sg.Slider(
+                range=(0, 254),
+                default_value=50,
+                resolution=1,
+                key="binarize_threshold",
+                tick_interval=50,
+                orientation="horizontal",
+                disabled=True,
+                size= (10,10),
+                expand_x = True
+            ),
+        ],
+        [
+            sg.Text(
+                "automask grow: \u2753 ",
+                tooltip="Amount to grow the mask area after automask.",
+            ),
+            sg.Slider(
+                range=(0.500, 0.950),
+                default_value=0.650,
+                resolution=0.050,
+                tick_interval=0.100,
+                orientation="horizontal",
+                disabled=False,
+                size= (10,10),
+                expand_x = True
+            ),
+        ],
+        [
+            sg.Text("Maskview: "),
+            sg.Radio(
+                "off \u2753",
+                "Radiomaskview",
+                default=False,
+                tooltip="Don't generate maskview.",
+            ),
+            sg.Radio(
+                "save \u2753",
+                "Radiomaskview",
+                default=True,
+                tooltip="Save maskview for photo.",
+            ),
+            sg.Radio(
+                "prompt \u2753",
+                "Radiomaskview",
+                default=False,
+                tooltip="Save maskview and prompt user if it looks good.",
+            ),
+        ],
+    ],
+    expand_x = True
+)
+
+analysis_frame = sg.Frame(
+    "Analysis",
+    [
+        [
+            sg.Checkbox(
+                "analyze brightness \u2753 ",
+                enable_events=True,
+                key="density",
+                tooltip="Analyze the brightness distribution. \nThis also calculates the optical density.",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "export CSV \u2753 ",
+                enable_events=True,
+                key="export CSV",
+                tooltip="Saves a CSV file with the brightness distribution. \nTypically used to create new calibrations.",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "analyze pinholes \u2753 ",
+                enable_events=True,
+                key="export_distribution",
+                tooltip="Analyze pinholes. You need a suitable calibration for that.",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "create pptx file \u2753 ",
+                enable_events=True,
+                key="create_ppt",
+                tooltip="Generates a PPTX file with the results.",
+            )
+        ],
+    ],
+    expand_x = True
+)
+
+editing_frame = sg.Frame(
+    "Editing",
+    [
+        [
+            sg.Checkbox(
+                "flip photo \u2753 ",
+                enable_events=True,
+                key="flip",
+                tooltip="Flip photo (rotate by 180°).",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "autorotate \u2753 ",
+                enable_events=True,
+                key="autorotate",
+                tooltip="Rotate the photo so that the main axis is horizontal.",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "analyze pinholes \u2753 ",
+                enable_events=True,
+                key="export_distribution",
+                tooltip="Analyze pinholes. You need a suitable calibration for that.",
+            )
+        ],
+        [
+            sg.Checkbox(
+                "create pptx file \u2753 ",
+                enable_events=True,
+                key="create_ppt",
+                tooltip="Generates a PPTX file with the results.",
+            )
+        ],
+    ],
+    expand_x = True
+)
+
+max_progress = 100
+
+layout = [
+    [sg.Column([[general_frame],[mask_frame]], expand_x = True, element_justification = "left"),
+    sg.Column([[editing_frame],[analysis_frame]], expand_x = True, vertical_alignment='top', element_justification = "left")],
+    [sg.ProgressBar(max_progress, size=(10, 20), expand_x = True,  key='-PBAR-'),
+    sg.Button("Run \u2753", size=(10, 1), tooltip="Run the evaluation.", expand_x = False)],
+    [sg.Output(size=(150, 8), key="log", expand_x = True, expand_y = True)],
+    [
+        sg.Text(
+            "For help contact bastian.ebeling@kuraray.com.",
+            justification="right",
+            expand_x=True,
+        )
+    ],
+]
+
+window = sg.Window(f"anabu v. {VERSION}", layout, resizable=True, icon=r"logo/logo.ico", finalize=True)
+
+window.TKroot.minsize(500,600)
+
+
+set_up_logging()
+buffer = ""
+ch = Handler()
+logging.getLogger("").addHandler(ch)
+
+while True:  # Event Loop
+    event, values = window.read(timeout=100)
+    if event == sg.WIN_CLOSED:
+        break
+    elif event == "automask":
+        if values["automask"] == True:
+            window["automask_save"].update(disabled=False)
+            window["binarize_auto"].update(disabled=False)
+            window["mask_file"].update(disabled=True)
+            window["mask_file_input"].update(disabled=True)
+        else:
+            window["automask_save"].update(False, disabled=True)
+            window["binarize_auto"].update(False, disabled=True)
+            window["mask_file"].update(disabled=False)
+            window["mask_file_input"].update(disabled=False)
+    if event == "Run \u2753":
+        run_interface()
+        # file = sg.popup_get_file(
+        #     "Select mask file",
+        #     title="Select mask file",
+        #     no_window=True,
+        #     icon=r"logo/logo.ico",
+        #     file_types=(("Image Files", "*.jpg *.jpeg *.tiff *.png"),),
+        # )
+        
+window.close()
+
+if is_main_2:
+    run_interface()
+    sg.theme("BlueMono")
+    layout = [
+        [sg.Text("Some text on Row 1")],
+        [
+            sg.Text("operator"),
+            sg.InputText(default_text=user_settings.operator["value"], key="operator"),
+        ],
+        [sg.Button("Ok"), sg.Button("Cancel")],
+    ]
     # Create the Window
-    window = sg.Window(f'anabu v. {VERSION}', layout, icon=r'logo/logo.ico')
+    window = sg.Window(f"anabu v. {VERSION}", layout, icon=r"logo/logo.ico")
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
         event, values = window.read()
-        if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+        if (
+            event == sg.WIN_CLOSED or event == "Cancel"
+        ):  # if user closes window or clicks cancel
             break
-        print('You entered ', values[0])
+        user_settings.operator["value"] = values["operator"]
+        sg.easy_print("You entered ", values)
+    # print(user_settings.operator['value'])
 
     window.close()
-    run_interface()
