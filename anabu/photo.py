@@ -250,7 +250,7 @@ class Photo:
         """
         EXIF_tags_targets = {
             "Make": interface.user_settings.target_Make["value"],
-            "Model": interface.user_settings.target_model["value"],
+            "Model": interface.user_settings.target_Model["value"],
             "BrightnessValue": interface.user_settings.target_BrightnessValue["value"],
             "ExifImageWidth": interface.user_settings.target_ExifImageWidth["value"],
             "ExifImageHeight": interface.user_settings.target_ExifImageHeight["value"],
@@ -277,14 +277,18 @@ class Photo:
         Returns:
             bool: EXIF data coincide with targets.
         """
-        image_exif = (
-            self.photo_check._getexif()
-        )  # doesn't find all exif data with .getexif(), older method seems to be ok
-        exif_tag_dict = {}
-        for key, val in image_exif.items():
-            if key in PIL_ExifTags.TAGS:
-                exif_tag_dict[PIL_ExifTags.TAGS[key]] = val
-        interface.logging.info("Extracted EXIF data from photo file.")
+        try:
+            image_exif = (
+                self.photo_check._getexif()
+            )  # doesn't find all exif data with .getexif(), older method seems to be ok
+            exif_tag_dict = {}
+            for key, val in image_exif.items():
+                if key in PIL_ExifTags.TAGS:
+                    exif_tag_dict[PIL_ExifTags.TAGS[key]] = val
+            interface.logging.info("Extracted EXIF data from photo file.")
+        except:
+            interface.logging.exception("Exif data could not be read. Wrong file type.")
+            raise Exception("Exif data could not be read. Wrong file type.")
         EXIF_tags_targets = Photo.get_EXIF_targets()
         for tagno in range(len(EXIF_tags)):
             try:
@@ -318,7 +322,7 @@ class Photo:
                 else:
                     interface.logging.exception(
                         f"The target for {EXIF_tags[tagno][0]} is {EXIF_tags_targets[EXIF_tags[tagno][0]]}."
-                        f"A different value was extracted: {EXIF_tags[tagno][2]}."
+                        f"A different value was extracted: {EXIF_tags[tagno][2]}. "
                         f"Exiting evaluation."
                     )
                     raise Exception(
@@ -326,7 +330,7 @@ class Photo:
                         f"A different value was extracted: {EXIF_tags[tagno][2]}. Exiting evaluation."
                     )
         interface.logging.info(
-            f"All EXIF tags extracted successfully for {self.file_name}. No conflict with target values."
+            f"All EXIF tags extracted successfully for {self.file_name}. No conflicts with target values."
         )
         interface.results.add_result(
             variable="EXIF_check",
@@ -428,12 +432,15 @@ class Photo:
         Args:
             thresh (Union[str,int], optional):
                     Threshold brightness value for binarization step.
-                    "auto" for triangle algorithm.
+                    "auto" for triangle/yen algorithm (whatever is lower value).
                     Defaults to "auto".
             grow (float): threshold point for final rebinarization
                 (0.5 <= grow < 1)
             save (bool): save to file
         """
+        if interface.GUI:
+            interface.logging.info(f"Creating automask...")
+        
         if not (grow >= 0.5) and (grow < 1):
             interface.logging.exception(
                 f"Grow value must be 0.5 <= grow < 1, not {grow}."
@@ -458,8 +465,13 @@ class Photo:
             """
             nonlocal binarized_photo
             thresh = (
-                sm.filters.threshold_triangle(
-                    sm.util.img_as_ubyte(sm.color.rgb2gray(self.photo))
+                min(
+                    sm.filters.threshold_triangle(
+                        sm.util.img_as_ubyte(sm.color.rgb2gray(self.photo))
+                    ),
+                    sm.filters.threshold_yen(
+                        sm.util.img_as_ubyte(sm.color.rgb2gray(self.photo))
+                    ),
                 )
                 if thresh_value == "auto"
                 else thresh_value
@@ -532,10 +544,26 @@ class Photo:
             automask_gaussian,
             automask_final_binarization,
         ]
-        for function in interface.progressBar(
-            automask_function_list, prefix="Automask:", suffix="complete", length=50
-        ):
-            function()
+        
+        if interface.GUI:
+            automask_hole_removal()
+            interface.logging.info("Remaining white holes in automask removed.")
+            automask_object_removal()
+            interface.logging.info("Remaining black spots in automask removed.")
+            automask_opening_disk()
+            interface.logging.info("Edges smoothed with disk shape.")
+            automask_opening_square()
+            interface.logging.info("Edges smoothed with square shape.")
+            automask_gaussian()
+            interface.logging.info("Gaussian blur applied on edges.")
+            automask_final_binarization()
+            interface.logging.info("Final rebinarization applied on automask.")            
+            
+        else:
+            for function in interface.progressBar(
+                automask_function_list, prefix="Automask:", suffix="complete", length=50
+            ):
+                function()
         self.mask_height, self.mask_width = self.mask.shape[0], self.mask.shape[1]
         interface.logging.info(f"Successfully created automask.")
         if save:
@@ -570,7 +598,7 @@ class Photo:
         )
         interface.results.add_result(
             variable="percentage_nonmasked",
-            parameter="percentage of masked pixels",
+            parameter="percentage of nonmasked pixels",
             value=self.percentage_nonmasked,
         )
 
@@ -914,7 +942,9 @@ def run_photo() -> None:
     global photo
     photo = Photo(interface.user_settings.photo_file["value"])
     photo.basic_attribs()
+    interface.window['-PBAR-'].update(current_count=30)
     photo.check_exif()
+    interface.window['-PBAR-'].update(current_count=30)
     photo.add_mask()
     photo.flip_photo_mask()
     photo.get_orientation()
