@@ -85,9 +85,13 @@ class Photo:
                 str: path to selected photo file
             """
             interface.logging.info(f"Using dialog for selecting photo file.")
-            photo_file = interface.filedialog.askopenfilename(
-                filetypes=[("Image Files", ".png .tiff, .jpeg .jpg")],
-                title="Select photo file for evaluation",
+            photo_file = interface.sg.popup_get_file(
+                message="Select photo file",
+                icon=r"logo/logo.ico",
+                title="Select photo file",
+                file_types=(("Image Files", ".png .tiff, .jpeg .jpg"),),
+                keep_on_top=True,
+                no_window=False,
             )
             interface.logging.info(f"Selected photo file using dialog: {photo_file}")
             interface.results.add_result(
@@ -360,10 +364,18 @@ class Photo:
                 str: path to selected mask file
             """
             interface.logging.info(f"Using dialog for selecting mask file.")
-            mask_file = interface.filedialog.askopenfilename(
-                filetypes=[("Image Files", ".png .tiff, .jpeg .jpg")],
-                title="Select mask file for evaluation",
+            mask_file = interface.sg.popup_get_file(
+                message="Select mask file",
+                icon=r"logo/logo.ico",
+                title="Select mask file",
+                file_types=(("Image Files", ".png .tiff, .jpeg .jpg"),),
+                keep_on_top=True,
+                no_window=False,
             )
+            # mask_file = interface.filedialog.askopenfilename(
+            #     filetypes=[("Image Files", ".png .tiff, .jpeg .jpg")],
+            #     title="Select mask file for evaluation",
+            # )
             interface.logging.info(f"Selected mask file using dialog: {mask_file}")
             interface.results.add_result(
                 variable="mask_file_dialog",
@@ -440,7 +452,7 @@ class Photo:
         """
         if interface.GUI:
             interface.logging.info(f"Creating automask...")
-        
+
         if not (grow >= 0.5) and (grow < 1):
             interface.logging.exception(
                 f"Grow value must be 0.5 <= grow < 1, not {grow}."
@@ -544,21 +556,28 @@ class Photo:
             automask_gaussian,
             automask_final_binarization,
         ]
-        
+
         if interface.GUI:
+            interface.Gui.update_progress_bar()
             automask_hole_removal()
             interface.logging.info("Remaining white holes in automask removed.")
+            interface.Gui.update_progress_bar()
             automask_object_removal()
             interface.logging.info("Remaining black spots in automask removed.")
+            interface.Gui.update_progress_bar()
             automask_opening_disk()
             interface.logging.info("Edges smoothed with disk shape.")
+            interface.Gui.update_progress_bar()
             automask_opening_square()
             interface.logging.info("Edges smoothed with square shape.")
+            interface.Gui.update_progress_bar()
             automask_gaussian()
             interface.logging.info("Gaussian blur applied on edges.")
+            interface.Gui.update_progress_bar()
             automask_final_binarization()
-            interface.logging.info("Final rebinarization applied on automask.")            
-            
+            interface.logging.info("Final rebinarization applied on automask.")
+            interface.Gui.update_progress_bar()
+
         else:
             for function in interface.progressBar(
                 automask_function_list, prefix="Automask:", suffix="complete", length=50
@@ -651,19 +670,23 @@ class Photo:
                     self.photo, (np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated photo by {np.pi/2-self.orientation}.")
+                interface.Gui.update_progress_bar()
                 self.mask = sm.transform.rotate(
                     self.mask, (np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated mask by {np.pi/2-self.orientation}.")
+                interface.Gui.update_progress_bar()
             else:
                 self.photo = sm.transform.rotate(
                     self.photo, (-np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated photo by {-np.pi/2-self.orientation}.")
+                interface.Gui.update_progress_bar()
                 self.mask = sm.transform.rotate(
                     self.mask, (-np.pi / 2 - self.orientation) * 180 / np.pi - 180
                 )
                 interface.logging.info(f"Rotated mask by {-np.pi/2-self.orientation}.")
+                interface.Gui.update_progress_bar()
 
     def flip_photo_mask(self) -> None:
         """
@@ -730,12 +753,22 @@ class Photo:
             interface.logging.info(
                 f"Showing masked photo and dialog for operator check if masking was applied correctly."
             )
-            mask_ok = interface.messagebox.askyesno(
-                "Is the masking ok?",
+            mask_check = interface.sg.popup_yes_no(
                 "Please have a look at file "
                 + os.path.splitext(self.photo_path)[0]
-                + "_maskview.tiff. Is the mask applied correctly?",
+                + "_maskview.tiff. \nIs the mask applied correctly?",
+                icon=r"logo/logo.ico",
+                title="Is the masking ok?",
+                keep_on_top=True,
             )
+            mask_ok = True if mask_check == "Yes" else False
+            # mask_ok = interface.sg.tkinter.messagebox.askyesno(
+            #     "Is the masking ok?",
+            #     "Please have a look at file "
+            #     + os.path.splitext(self.photo_path)[0]
+            #     + "_maskview.tiff. Is the mask applied correctly?",
+            #     icon='question',
+            # )
             if mask_ok:
                 self.mask_ok = True
                 interface.logging.info(
@@ -940,21 +973,29 @@ class Photo:
 def run_photo() -> None:
     """Execute the photo functions."""
     global photo
+    interface.Gui.update_progress_bar()
     photo = Photo(interface.user_settings.photo_file["value"])
+    interface.Gui.update_progress_bar()
     photo.basic_attribs()
-    interface.window['-PBAR-'].update(current_count=30)
+    interface.Gui.update_progress_bar()
     photo.check_exif()
-    interface.window['-PBAR-'].update(current_count=30)
+    interface.Gui.update_progress_bar()
     photo.add_mask()
+    interface.Gui.update_progress_bar()
     photo.flip_photo_mask()
+    interface.Gui.update_progress_bar()
     photo.get_orientation()
+    interface.Gui.update_progress_bar()
     photo.rotate_photo_mask()
+    interface.Gui.update_progress_bar()
     photo.maskview(output=interface.user_settings.maskview["value"])
+    interface.Gui.update_progress_bar()
     photo.autocrop(
         photo.photo,
         margin=interface.user_settings.autocrop_margin["value"],
         save=interface.user_settings.autocrop_save["value"],
     )
+    interface.Gui.update_progress_bar()
 
 
 # ------------------------------------------------

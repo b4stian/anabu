@@ -32,7 +32,7 @@ FIG_WIDTH = 33.5 * CM
 FIG_HEIGHT = 15 * CM
 
 # distance of ticks in scales in mm
-TICK_DISTANCE = 20
+TICK_DISTANCE = 30
 
 # Kuraray color scheme from branding homepage
 kuracolors_rgb = {

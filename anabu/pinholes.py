@@ -122,7 +122,10 @@ class Pinholer:
         interface.logging.info(
             f"Minimum pinhole diameter detectable with calibration is {round(self.minimum_size_calibration_pinholes, 1)} µm."
         )
-        if self.calibration_pinholes["exposure_time"] != interface.results.ExposureTime["value"]:
+        if (
+            self.calibration_pinholes["exposure_time"]
+            != interface.results.ExposureTime["value"]
+        ):
             interface.logging.exception(
                 f"Calibration is not suitable for photo because of wrong exposure time. Calibration: {self.calibration_pinholes['exposure_time']}, photo: {interface.results.exposure_time['value']}."
             )
@@ -381,17 +384,29 @@ def run_pinholes():
         interface.logging.info("Pinhole analyzer disabled.")
         return
     pinholer = Pinholer(photo.photo)
+    interface.Gui.update_progress_bar()
     pinholer.set_steps()
+    interface.Gui.update_progress_bar()
     binarized = pinholer.binarize_photo()
+    interface.Gui.update_progress_bar()
     holes = pinholer.big_holes(binarized)
+    interface.Gui.update_progress_bar()
     pinholer.save_image(pinholer.holes, "holes")
+    interface.Gui.update_progress_bar()
     labels = pinholer.label_holes(holes)
+    interface.Gui.update_progress_bar()
     pinholer.save_image(pinholer.labels_holes, "labels")
+    interface.Gui.update_progress_bar()
     details = pinholer.extract_pinhole_details(labels)
+    interface.Gui.update_progress_bar()
     pinholer.save_pinhole_details(details)
+    interface.Gui.update_progress_bar()
     circled_photo = pinholer.create_circled_photo(binarized, labels)
+    interface.Gui.update_progress_bar()
     pinholer.save_image(pinholer.circled_photo, "circled")
+    interface.Gui.update_progress_bar()
     pinholer.save_labeled_photo(circled_photo, details)
+    interface.Gui.update_progress_bar()
 
     print("\a")
 

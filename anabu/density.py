@@ -390,7 +390,7 @@ class Evaluator:
                 == self.calibration_density["parameters"][i][0]
             ):
                 optical_density = self.calibration_density["parameters"][i][1]
-                self.optical_density = round(optical_density,3)
+                self.optical_density = round(optical_density, 3)
                 interface.results.add_result(
                     variable="optical_density",
                     parameter="average optical density of sample",
@@ -420,7 +420,8 @@ class Evaluator:
         )
         assert index_above == index_below - 1
         optical_density = self.calibration_density["parameters"][index_above][1] - (
-            self.calibration_density["parameters"][index_above][0] - self.brightness_1_4_weighted_mean
+            self.calibration_density["parameters"][index_above][0]
+            - self.brightness_1_4_weighted_mean
         ) / (
             self.calibration_density["parameters"][index_above][0]
             - self.calibration_density["parameters"][index_below][0]
@@ -443,11 +444,17 @@ class Evaluator:
 def run_density():
     global evaluator
     evaluator = Evaluator(photo.photo)
+    interface.Gui.update_progress_bar()
     evaluator.create_grey_photo()
+    interface.Gui.update_progress_bar()
     evaluator.create_brightness_arrays()
+    interface.Gui.update_progress_bar()
     evaluator.calculate_distribution_params()
+    interface.Gui.update_progress_bar()
     evaluator.calculate_OD()
+    interface.Gui.update_progress_bar()
     evaluator.export_distributions()
+    interface.Gui.update_progress_bar()
 
 
 # ------------------------------------------------

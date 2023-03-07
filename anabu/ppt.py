@@ -17,6 +17,7 @@ except:
     from anabu import pinholes
 from pptx import Presentation
 from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT, PP_ALIGN
+from PIL import Image
 import os
 
 # ------------------------------------------------
@@ -171,14 +172,23 @@ class Pptx:
     def generate_pinholes_slide(self) -> None:
         if not interface.user_settings.pinholes["value"]:
             return
+        im = Image.open(os.path.splitext(photo.photo.photo_path)[0] + "_pinholes.png")
+        x, y = im.size
+        new_x = int(y * 335 / 150)
+        new_im = Image.new("RGBA", (new_x, y), (0, 0, 0, 0))
+        new_im.paste(im, (int((new_x - x) / 2), 0))
+        new_im.save(
+            os.path.splitext(photo.photo.photo_path)[0] + "_pinholes_resized.png"
+        )
         self.pinholes_slide = self.presentation.slides.add_slide(
-            self.presentation.slide_layouts[11]
+            self.presentation.slide_layouts[10]
         )
         self.pinholes_slide.placeholders[
             0
         ].text = f"Pinhole analysis of {interface.results.sample_name['value']} ({interface.results.calibration_pinholes_name['value']})"
-        self.pinholes_slide.placeholders[13].insert_picture(
-            os.path.splitext(photo.photo.photo_path)[0] + "_pinholes.png"
+        placeholder = self.pinholes_slide.placeholders[13]
+        placeholder = placeholder.insert_picture(
+            os.path.splitext(photo.photo.photo_path)[0] + "_pinholes_resized.png"
         )
         interface.logging.info("Generated slide with marked pinholes.")
 
@@ -196,12 +206,19 @@ def run_pptx() -> None:
         return
     prs = Pptx(PATH_MASTER_PPT)
     prs.generate_title_slide()
+    interface.Gui.update_progress_bar()
     prs.generate_cropped_photo_slide()
+    interface.Gui.update_progress_bar()
     prs.generate_distribution_plot_slide()
+    interface.Gui.update_progress_bar()
     prs.generate_results_slide()
+    interface.Gui.update_progress_bar()
     prs.generate_pinholes_slide()
+    interface.Gui.update_progress_bar()
     prs.generate_maskview_slide()
+    interface.Gui.update_progress_bar()
     prs.save_presentation()
+    interface.Gui.update_progress_bar()
 
 
 # ------------------------------------------------

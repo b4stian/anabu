@@ -27,8 +27,9 @@ import glob
 import logging
 import os
 from shutil import copy2
-from tkinter import Tk, filedialog, messagebox  # FIXME messagebox needed in this file?
+from tkinter import Tk, filedialog
 import PySimpleGUI as sg
+import sys
 
 
 # ------------------------------------------------
@@ -41,7 +42,7 @@ VERSION = "0.9"
 GUI = True
 
 # ignore settings csv file
-IGNORE_SETTINGS_FILE = True
+IGNORE_SETTINGS_FILE = False
 
 # date string for filenames
 date_string = (
@@ -77,8 +78,10 @@ files_ignore = {
     "_maskedrg",
     "_maskview",
     "_pinholes",
+    "_pinholes_resized",
     "_scale_axes",
     "_distribution_plot",
+    "_cropped_scaled_photo",
 }
 
 # property: ["name of property in csv", "default value if not found", "type of value", "explanation of variable"]
@@ -595,6 +598,10 @@ class Gui:
         global window, values
 
         sg.theme("SystemDefault")
+        sg.theme_background_color(color="#EFEDE7")
+        sg.theme_button_color(("black", "#00B0E9"))
+        sg.theme_text_element_background_color(color="#EFEDE7")
+        sg.theme_element_background_color(color="#EFEDE7")
 
         general_frame = sg.Frame(
             "General",
@@ -688,20 +695,20 @@ class Gui:
                         key="mask_text",
                         tooltip="Select mask for photo from disc, if you have one.",
                         text_color="black"
-                            if not user_settings.automask["value"]
-                            else "grey",
+                        if not user_settings.automask["value"]
+                        else "grey",
                     ),
                     sg.Input(
                         key="mask_file",
                         size=(1, 1),
                         expand_x=True,
-                        disabled= user_settings.automask["value"],
+                        disabled=user_settings.automask["value"],
                         default_text=user_settings.mask_file["value"],
                     ),
                     sg.FileBrowse(
                         file_types=(("Image Files", "*.jpg *.jpeg *.tiff *.png"),),
                         key="mask_file_input",
-                        disabled= user_settings.automask["value"],
+                        disabled=user_settings.automask["value"],
                     ),
                 ],
                 [
@@ -729,7 +736,7 @@ class Gui:
                         "auto binarize  \u2753",
                         key="binarize_auto",
                         enable_events=True,
-                        disabled= not user_settings.automask["value"],
+                        disabled=not user_settings.automask["value"],
                         tooltip="Automatically determine the threshold for binarization in automask. \nTry manual if it doesn't work",
                         default=user_settings.binarize_auto["value"],
                     ),
@@ -737,21 +744,25 @@ class Gui:
                 [
                     sg.Text(
                         "binarization threshold: \u2753 ",
-                        key = "binarize_threshold_text",
+                        key="binarize_threshold_text",
                         tooltip="Manual threshold brightness value for binarization in automask. \nIgnored if auto binarization is used.",
-                        text_color="grey" if user_settings.binarize_auto["value"] else "black",
+                        text_color="grey"
+                        if user_settings.binarize_auto["value"]
+                        else "black",
                     ),
                     sg.Slider(
-                        range= (0,0) if user_settings.binarize_auto["value"] else (0, 254),
+                        range=(0, 0)
+                        if user_settings.binarize_auto["value"]
+                        else (0, 254),
                         default_value=0 if user_settings.binarize_auto["value"] else 50,
                         resolution=1,
                         key="binarize_threshold",
                         tick_interval=50,
                         orientation="horizontal",
-                        disabled= user_settings.binarize_auto["value"],
+                        disabled=user_settings.binarize_auto["value"],
                         size=(10, 10),
                         expand_x=True,
-                        #text_color="grey",
+                        # text_color="grey",
                     ),
                 ],
                 [
@@ -759,7 +770,9 @@ class Gui:
                         "automask grow: \u2753 ",
                         tooltip="Amount to grow the mask area after automask.",
                         key="automask_grow_text",
-                        text_color = "grey" if not user_settings.binarize_auto["value"] else "black",
+                        text_color="grey"
+                        if not user_settings.binarize_auto["value"]
+                        else "black",
                     ),
                     sg.Slider(
                         range=(0.500, 0.950),
@@ -767,34 +780,42 @@ class Gui:
                         resolution=0.050,
                         tick_interval=0.100,
                         orientation="horizontal",
-                        disabled=False if user_settings.binarize_auto["value"] else True,
+                        disabled=False
+                        if user_settings.binarize_auto["value"]
+                        else True,
                         size=(10, 10),
                         expand_x=True,
                         key="automask_grow",
-                        #text_color=None,
+                        # text_color=None,
                     ),
                 ],
                 [
                     sg.Text("Maskview: "),
                     sg.Radio(
                         "off \u2753",
-                        group_id = "maskview",
-                        key = "maskview_off",
-                        default=True if user_settings.maskview["value"] == None else False,
+                        group_id="maskview",
+                        key="maskview_off",
+                        default=True
+                        if user_settings.maskview["value"] == None
+                        else False,
                         tooltip="Don't generate maskview.",
                     ),
                     sg.Radio(
                         "save \u2753",
-                        group_id = "maskview",
-                        key = "maskview_save",
-                        default=True if user_settings.maskview["value"] == "save" else False,
+                        group_id="maskview",
+                        key="maskview_save",
+                        default=True
+                        if user_settings.maskview["value"] == "save"
+                        else False,
                         tooltip="Save maskview for photo.",
                     ),
                     sg.Radio(
                         "prompt \u2753",
-                        group_id = "maskview",
-                        key = "maskview_prompt",
-                        default=True if user_settings.maskview["value"] == "prompt" else False,
+                        group_id="maskview",
+                        key="maskview_prompt",
+                        default=True
+                        if user_settings.maskview["value"] == "prompt"
+                        else False,
                         tooltip="Save maskview and prompt user if it looks good.",
                     ),
                 ],
@@ -821,6 +842,7 @@ class Gui:
                         enable_events=True,
                         key="export_distribution",
                         tooltip="Saves a CSV file with the brightness distribution. \nTypically used to create new calibrations.",
+                        disabled=not user_settings.analyze_brightness["value"],
                     ),
                 ],
                 [
@@ -829,7 +851,9 @@ class Gui:
                         enable_events=True,
                         key="pinholes",
                         tooltip="Analyze pinholes. You need a suitable calibration for that.",
-                        default=user_settings.export_distribution["value"] if user_settings.analyze_brightness["value"] else False,
+                        default=user_settings.export_distribution["value"]
+                        if user_settings.analyze_brightness["value"]
+                        else False,
                     )
                 ],
                 [
@@ -839,6 +863,7 @@ class Gui:
                         key="create_ppt",
                         tooltip="Generates a PPTX file with the results.",
                         default=user_settings.create_ppt["value"],
+                        disabled=not user_settings.analyze_brightness["value"],
                     )
                 ],
             ],
@@ -854,7 +879,7 @@ class Gui:
                         enable_events=True,
                         key="flip",
                         tooltip="Flip photo (rotate by 180°).",
-                        default= user_settings.flip["value"]
+                        default=user_settings.flip["value"],
                     )
                 ],
                 [
@@ -881,7 +906,9 @@ class Gui:
                         enable_events=True,
                         key="autocrop_margin_text",
                         tooltip="Number of pixels to leave around patch when autocrop is used.",
-                        text_color = "black" if user_settings.autocrop["value"] else "grey",
+                        text_color="black"
+                        if user_settings.autocrop["value"]
+                        else "grey",
                     ),
                     sg.Spin(
                         [i for i in range(500)],
@@ -889,7 +916,7 @@ class Gui:
                         disabled=not user_settings.autocrop["value"],
                         readonly=False,
                         size=(4, 1),
-                        key = "autocrop_margin",
+                        key="autocrop_margin",
                     ),
                 ],
                 [
@@ -898,14 +925,16 @@ class Gui:
                         enable_events=True,
                         key="autocrop_save_text",
                         tooltip="What to save after autocrop: \nDon't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), \nsave photo, mask, cropped mask ('all')",
-                        text_color = "black" if user_settings.autocrop["value"] else "grey",
+                        text_color="black"
+                        if user_settings.autocrop["value"]
+                        else "grey",
                     ),
                     sg.Combo(
                         [None, "photo", "masked", "all"],
                         enable_events=True,
                         key="autocrop_save",
                         default_value=user_settings.autocrop_save["value"],
-                        disabled= not user_settings.autocrop["value"],
+                        disabled=not user_settings.autocrop["value"],
                     ),
                 ],
             ],
@@ -925,7 +954,7 @@ class Gui:
                     sg.Input(
                         key="target_Make",
                         size=(10, 1),
-                        default_text= user_settings.target_Make["value"],
+                        default_text=user_settings.target_Make["value"],
                     ),
                     sg.Text(
                         "   model \u2753 ",
@@ -947,7 +976,9 @@ class Gui:
                         tooltip="Target EXIF tag for lens model. \nWill not run if a different tag is found.",
                     ),
                     sg.Input(
-                        key="target_LensModel", size=(15, 1), default_text=user_settings.target_LensModel["value"]
+                        key="target_LensModel",
+                        size=(15, 1),
+                        default_text=user_settings.target_LensModel["value"],
                     ),
                     sg.Text(
                         "focal length \u2753 ",
@@ -955,7 +986,11 @@ class Gui:
                         key="target_FocalLength_text",
                         tooltip="Target EXIF tag for focal length in mm. \nWill not run if a different tag is found.",
                     ),
-                    sg.Input(key="target_FocalLength", size=(5, 1), default_text=user_settings.target_FocalLength["value"]),
+                    sg.Input(
+                        key="target_FocalLength",
+                        size=(5, 1),
+                        default_text=user_settings.target_FocalLength["value"],
+                    ),
                 ],
                 [
                     sg.Text(
@@ -965,7 +1000,9 @@ class Gui:
                         tooltip="Target EXIF tag for image width in pixels. \nWill not run if a different tag is found.",
                     ),
                     sg.Input(
-                        key="target_ExifImageWidth", size=(5, 1), default_text=user_settings.target_ExifImageWidth["value"]
+                        key="target_ExifImageWidth",
+                        size=(5, 1),
+                        default_text=user_settings.target_ExifImageWidth["value"],
                     ),
                     sg.Text(
                         "   image height \u2753 ",
@@ -974,7 +1011,9 @@ class Gui:
                         tooltip="Target EXIF tag for image height in pixels. \nWill not run if a different tag is found.",
                     ),
                     sg.Input(
-                        key="target_ExifImageHeight", size=(5, 1), default_text=user_settings.target_ExifImageHeight["value"]
+                        key="target_ExifImageHeight",
+                        size=(5, 1),
+                        default_text=user_settings.target_ExifImageHeight["value"],
                     ),
                 ],
                 [
@@ -985,7 +1024,9 @@ class Gui:
                         tooltip="Target EXIF tag for ISO number. \nWill not run if a different tag is found.",
                     ),
                     sg.Input(
-                        key="target_ISOSpeedRatings", size=(5, 1), default_text=user_settings.target_ISOSpeedRatings["value"]
+                        key="target_ISOSpeedRatings",
+                        size=(5, 1),
+                        default_text=user_settings.target_ISOSpeedRatings["value"],
                     ),
                     sg.Text(
                         "F number \u2753 ",
@@ -993,7 +1034,11 @@ class Gui:
                         key="target_FNumber_text",
                         tooltip="Target EXIF tag for F number of aperture. \nWill not run if a different tag is found.",
                     ),
-                    sg.Input(key="target_FNumber", size=(5, 1), default_text=user_settings.target_FNumber["value"]),
+                    sg.Input(
+                        key="target_FNumber",
+                        size=(5, 1),
+                        default_text=user_settings.target_FNumber["value"],
+                    ),
                 ],
                 [
                     sg.Text(
@@ -1002,7 +1047,11 @@ class Gui:
                         key="target_ExposureTime_text",
                         tooltip="Target EXIF tag for exposure time in seconds. \nWill not run if a different tag is found.",
                     ),
-                    sg.Input(key="target_ExposureTime", size=(5, 1), default_text=user_settings.target_ExposureTime["value"]),
+                    sg.Input(
+                        key="target_ExposureTime",
+                        size=(5, 1),
+                        default_text=user_settings.target_ExposureTime["value"],
+                    ),
                 ],
             ],
             expand_x=True,
@@ -1029,7 +1078,7 @@ class Gui:
                     size=(10, 20),
                     expand_x=True,
                     key="-PBAR-",
-                    bar_color=("black", "grey"),
+                    bar_color=("#FF8672", "#C7BED1"),
                 ),
                 sg.Button(
                     "Run \u2753",
@@ -1038,7 +1087,7 @@ class Gui:
                     expand_x=False,
                 ),
             ],
-            [sg.Output(size=(150, 12), key="log", expand_x=True, expand_y=True)],
+            [sg.Output(size=(150, 20), key="log", expand_x=True, expand_y=True)],
             [
                 sg.Text(
                     "For help contact bastian.ebeling@kuraray.com.",
@@ -1061,7 +1110,7 @@ class Gui:
         while True:  # Event Loop
             event, values = window.read(timeout=100)
             if event == sg.WIN_CLOSED:
-                break
+                sys.exit()
             elif event == "automask":
                 if values["automask"] == True:
                     window["automask_save"].update(disabled=False)
@@ -1075,7 +1124,9 @@ class Gui:
                     )
                     if values["binarize_auto"] == False:
                         window["binarize_threshold_text"].update(text_color="black")
-                        window["binarize_threshold"].update(50, disabled=False, range=(0, 255))
+                        window["binarize_threshold"].update(
+                            50, disabled=False, range=(0, 255)
+                        )
                 else:
                     window["automask_save"].update(False, disabled=True)
                     window["binarize_auto"].update(False, disabled=True)
@@ -1113,14 +1164,18 @@ class Gui:
             elif event == "binarize_auto":
                 if values["binarize_auto"] == False:
                     window["binarize_threshold_text"].update(text_color="black")
-                    window["binarize_threshold"].update(50, disabled=False, range=(0, 255))
+                    window["binarize_threshold"].update(
+                        50, disabled=False, range=(0, 255)
+                    )
                 if values["binarize_auto"] == True:
                     window["binarize_threshold_text"].update(text_color="grey")
                     window["binarize_threshold"].update(0, disabled=True, range=(0, 0))
             elif event == "autocrop":
                 if values["autocrop"] == True:
                     window["autocrop_margin_text"].update(text_color="black")
-                    window["autocrop_margin"].update(user_settings.autocrop_margin["value"], disabled=False)
+                    window["autocrop_margin"].update(
+                        user_settings.autocrop_margin["value"], disabled=False
+                    )
                     window["autocrop_save_text"].update(text_color="black")
                     window["autocrop_save"].update(disabled=False)
                 if values["autocrop"] == False:
@@ -1131,24 +1186,32 @@ class Gui:
             elif event == "analyze_brightness":
                 if values["analyze_brightness"] == True:
                     window["export_distribution"].update(disabled=False)
+                    window["create_ppt"].update(disabled=False)
                 if values["analyze_brightness"] == False:
                     window["export_distribution"].update(False, disabled=True)
-                    
+                    window["create_ppt"].update(disabled=True)
+
             elif event == "Run \u2753":
-                #try:
                 analysis.run_button()
+                # try:
+                #     analysis.run_button()
                 # except:
                 #     logging.info("An error occurred!")
-                #     copy2(
-                #         "log/logfile.log",
-                #         f"{os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt",
-                #     )
-                #     logging.info(
-                #         f"Logfile copied to {os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt."
-                #     )
+                #     try:
+                #         copy2(
+                #             "log/logfile.log",
+                #             f"{os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt",
+                #         )
+                #         logging.info(
+                #             f"Logfile copied to {os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt."
+                #         )
+                #     except:
+                #         logging.info(
+                #             f"See logfile."
+                #         )
 
         window.close()
-    
+
     @staticmethod
     def set_settings_from_GUI() -> None:
         user_settings.operator["value"] = values["operator"]
@@ -1159,28 +1222,71 @@ class Gui:
         user_settings.automask["value"] = bool(values["automask"])
         user_settings.mask_file["value"] = values["mask_file"]
         user_settings.automask_save["value"] = bool(values["automask_save"])
-        user_settings.binarize_auto["value"] = bool(values["binarize_auto"]) 
+        user_settings.binarize_auto["value"] = bool(values["binarize_auto"])
+        # FIXME implement maskview = off?
         user_settings.maskview["value"] = "save" if values["maskview_save"] else None
-        user_settings.maskview["value"] = "prompt" if values["maskview_prompt"] else None
+        user_settings.maskview["value"] = (
+            "prompt" if values["maskview_prompt"] else "save"
+        )
         user_settings.analyze_brightness["value"] = bool(values["analyze_brightness"])
         user_settings.export_distribution["value"] = bool(values["export_distribution"])
         user_settings.create_ppt["value"] = bool(values["create_ppt"])
         user_settings.pinholes["value"] = bool(values["pinholes"])
-        user_settings.flip["value"] = bool(values["flip"])  
-        user_settings.autorotate["value"] = bool(values["autorotate"]) 
-        user_settings.autocrop["value"] = bool(values["autocrop"])   
+        user_settings.flip["value"] = bool(values["flip"])
+        user_settings.autorotate["value"] = bool(values["autorotate"])
+        user_settings.autocrop["value"] = bool(values["autocrop"])
         user_settings.autocrop_margin["value"] = int(values["autocrop_margin"])
-        user_settings.autocrop_save["value"] = values["autocrop_save"] 
+        user_settings.autocrop_save["value"] = values["autocrop_save"]
         user_settings.target_Make["value"] = values["target_Make"]
         user_settings.target_Model["value"] = values["target_Model"]
         user_settings.target_LensModel["value"] = values["target_LensModel"]
         user_settings.target_FocalLength["value"] = float(values["target_FocalLength"])
-        user_settings.target_ExifImageWidth["value"] = int(values["target_ExifImageWidth"])
-        user_settings.target_ExifImageHeight["value"] = int(values["target_ExifImageHeight"])
-        user_settings.target_ISOSpeedRatings["value"] = int(values["target_ISOSpeedRatings"])
+        user_settings.target_ExifImageWidth["value"] = int(
+            values["target_ExifImageWidth"]
+        )
+        user_settings.target_ExifImageHeight["value"] = int(
+            values["target_ExifImageHeight"]
+        )
+        user_settings.target_ISOSpeedRatings["value"] = int(
+            values["target_ISOSpeedRatings"]
+        )
         user_settings.target_FNumber["value"] = float(values["target_FNumber"])
-        user_settings.target_ExposureTime["value"] = float(values["target_ExposureTime"])
+        user_settings.target_ExposureTime["value"] = float(
+            values["target_ExposureTime"]
+        )
         logging.info("Settings updated with values from GUI.")
+
+    @staticmethod
+    def generate_progress_steps():
+        batch = user_settings.batch_evaluation["value"]
+        no_files = len(user_settings.file_list["value"]) if batch else 1
+        steps = 2
+        steps += 10 * no_files
+        if user_settings.automask["value"]:
+            steps += 7 * no_files
+        if user_settings.autorotate["value"]:
+            steps += 2 * no_files
+        if user_settings.analyze_brightness["value"]:
+            steps += 6 * no_files
+        if user_settings.pinholes["value"]:
+            steps += 12 * no_files
+        if user_settings.create_ppt["value"]:
+            steps += 7 * no_files
+        for i in range(steps):
+            yield (i + 1) / steps * 100
+
+    @staticmethod
+    def update_progress_bar():
+        if GUI:
+            window["-PBAR-"].update(current_count=next(analysis.progress_generator))
+
+    @staticmethod
+    def initiate_progress_bar():
+        window["-PBAR-"].update(current_count=0, bar_color=("#FF8672", "#C7BED1"))
+
+    @staticmethod
+    def finish_progress_bar():
+        window["-PBAR-"].update(current_count=100, bar_color=("#75B96C", "#C7BED1"))
 
 
 class Handler(logging.StreamHandler):
@@ -1323,25 +1429,6 @@ def run_interface() -> None:
         parameter="version of anabu",
         value=VERSION,
     )
-    if user_settings.batch_evaluation["value"]:
-        try:
-            file_list = get_files_in_folder(user_settings.photo_folder["value"])
-        except:
-            file_list = get_files_in_folder(folder_dialog())
-        user_settings.set_sett_attribute(
-            "file_list",
-            {
-                "variable": "file_list",
-                "parameter": "list of files for evaluation",
-                "value": file_list,
-            },
-        )
-        results.add_result(
-            variable="file_list",
-            parameter="photo files for batch evaluation",
-            value=file_list,
-        )
-        logging.info(f"Found {len(file_list)} photos for batch evaluation: {file_list}")
 
     logging.info("Starting GUI.")
     buffer = ""

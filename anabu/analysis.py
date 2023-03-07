@@ -26,12 +26,34 @@ import os
 
 def run_button():
     """Runs the code when the run button in the GUI is pressed."""
+    global progress_generator
     interface.clear_log_file()
+    interface.Gui.initiate_progress_bar()
     interface.logging.info("--------------------------------------------------------")
     interface.logging.info(f"Pressed Run. anabu {str(interface.VERSION)}. Evaluation started.")
     interface.logging.info("--------------------------------------------------------")
-    interface.window['-PBAR-'].update(current_count=5)
     interface.Gui.set_settings_from_GUI()
+    if interface.user_settings.batch_evaluation["value"]:
+        try:
+            file_list = interface.get_files_in_folder(interface.user_settings.photo_folder["value"])
+        except:
+            file_list = interface.get_files_in_folder(interface.folder_dialog())
+        interface.user_settings.set_sett_attribute(
+            "file_list",
+            {
+                "variable": "file_list",
+                "parameter": "list of files for evaluation",
+                "value": file_list,
+            },
+        )
+        interface.results.add_result(
+            variable="file_list",
+            parameter="photo files for batch evaluation",
+            value=file_list,
+        )
+        interface.logging.info(f"Found {len(file_list)} photos for batch evaluation: {file_list}")
+    progress_generator = interface.Gui.generate_progress_steps()
+    interface.Gui.update_progress_bar()
     interface.results.settings_to_results(interface.user_settings)
     if interface.user_settings.batch_evaluation["value"]:
         for file in interface.user_settings.file_list["value"]:
@@ -49,19 +71,15 @@ def run_button():
                 interface.logging.info(f"Error trying to evaluate file {file}.")
     else:
         photo.run_photo()
-        interface.window['-PBAR-'].update(current_count=20)
         if interface.user_settings.pinholes["value"]:
             pinholes.run_pinholes()
         if interface.user_settings.analyze_brightness["value"]:
-            interface.window['-PBAR-'].update(current_count=30)
             density.run_density()
-            interface.window['-PBAR-'].update(current_count=40)
             charts.run_charts()
-            interface.window['-PBAR-'].update(current_count=60)
             ppt.run_pptx()
-            interface.window['-PBAR-'].update(current_count=80)
         interface.end_analysis()
-    interface.window['-PBAR-'].update(current_count=100)
+    interface.Gui.update_progress_bar()
+    interface.Gui.finish_progress_bar()
     interface.logging.info("DONE.")
 
 def run_analysis_photo():
