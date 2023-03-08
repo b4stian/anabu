@@ -5,9 +5,9 @@
 
 try:
     import charts
+    import density
     import interface
     import photo
-    import density
     import pinholes
 except:
     from anabu import charts
@@ -15,10 +15,12 @@ except:
     from anabu import photo
     from anabu import density
     from anabu import pinholes
-from pptx import Presentation
-from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT, PP_ALIGN
-from PIL import Image
+
 import os
+
+from PIL import Image
+from pptx import Presentation
+from pptx.enum.text import PP_ALIGN, PP_PARAGRAPH_ALIGNMENT
 
 # ------------------------------------------------
 # variables
@@ -89,6 +91,9 @@ class Pptx:
         interface.logging.info("Generated slide with distribution plots.")
 
     def generate_maskview_slide(self) -> None:
+        if interface.user_settings.maskview["value"] == None:
+            interface.logging.info("Did not generated slide with Maskview because it is switched off.")
+            return
         self.maskview_slide = self.presentation.slides.add_slide(
             self.presentation.slide_layouts[11]
         )

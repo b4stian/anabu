@@ -12,15 +12,15 @@ try:
 except:
     from anabu import interface
 
-from datetime import datetime
 import os
 import platform
+from datetime import datetime
 from typing import Union
 
-from PIL import ExifTags as PIL_ExifTags
-from PIL import Image as PIL_Image
 import numpy as np
 import skimage as sm
+from PIL import ExifTags as PIL_ExifTags
+from PIL import Image as PIL_Image
 
 # ------------------------------------------------
 # variables
@@ -372,10 +372,6 @@ class Photo:
                 keep_on_top=True,
                 no_window=False,
             )
-            # mask_file = interface.filedialog.askopenfilename(
-            #     filetypes=[("Image Files", ".png .tiff, .jpeg .jpg")],
-            #     title="Select mask file for evaluation",
-            # )
             interface.logging.info(f"Selected mask file using dialog: {mask_file}")
             interface.results.add_result(
                 variable="mask_file_dialog",
@@ -442,10 +438,6 @@ class Photo:
         Create automask for photo and set attribute 'mask'.
 
         Args:
-            thresh (Union[str,int], optional):
-                    Threshold brightness value for binarization step.
-                    "auto" for triangle/yen algorithm (whatever is lower value).
-                    Defaults to "auto".
             grow (float): threshold point for final rebinarization
                 (0.5 <= grow < 1)
             save (bool): save to file
@@ -470,9 +462,9 @@ class Photo:
             nonlocal "binarized_photo".
 
             Args:
-                thresh (Union[str,int], optional):
+                thresh_value (Union[str,int], optional):
                     Threshold brightness value.
-                    "auto" for triangle algorithm.
+                    "auto" for triangle/yen algorithm (whatever lower).
                     Defaults to "auto".
             """
             nonlocal binarized_photo
@@ -513,6 +505,7 @@ class Photo:
             thresh_value = "auto"
         else:
             thresh_value = interface.user_settings.binarize_threshold["value"]
+            
         binarize_photo(thresh_value)
 
         def automask_hole_removal() -> None:

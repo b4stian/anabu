@@ -15,7 +15,7 @@
   },
   {
    "optionDest": "console",
-   "value": true
+   "value": false
   },
   {
    "optionDest": "icon_file",
@@ -104,6 +104,14 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/Ebeling/OneDrive - Kuraray Co., Ltd/Dokumente/org/git repositories/anabu/ppt/PPT_master.pptx;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Ebeling/OneDrive - Kuraray Co., Ltd/Dokumente/org/git repositories/anabu/logo/logo.ico;."
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "skimage.filters.thresholding"
   }
  ],
  "nonPyinstallerOptions": {

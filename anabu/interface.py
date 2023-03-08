@@ -20,23 +20,22 @@ except:
     from anabu import analysis
     from anabu import photo
 
-from collections.abc import Generator, Iterable
 import csv
-from datetime import datetime
 import glob
 import logging
 import os
-from shutil import copy2
-from tkinter import Tk, filedialog
-import PySimpleGUI as sg
 import sys
+from collections.abc import Generator, Iterable
+from datetime import datetime
+from shutil import copy2
 
+import PySimpleGUI as sg
 
 # ------------------------------------------------
 # variables
 
 # version number of anabu
-VERSION = "0.9"
+VERSION = "1.0"
 
 # activate GUI
 GUI = True
@@ -320,18 +319,6 @@ def set_up_logging() -> None:
         # force=True,
     )
 
-
-def set_up_tkinter() -> None:
-    """
-    Set up tkinter.
-    """
-    root = Tk()
-    # hides small tkinter window
-    root.withdraw()
-    # make opened windows will be active above all windows
-    root.attributes("-topmost", True)
-
-
 class Results:
     """Object to store and export all results."""
 
@@ -434,9 +421,13 @@ class Settings:
             logging.info(
                 "Trying to select correct csv file with settings via file dialog."
             )
-            dialog_path = filedialog.askopenfilename(
-                filetypes=[("CSV files", ".csv")],
+            dialog_path =  sg.popup_get_file(
+                message="Select file containing the settings",
+                icon=r"logo/logo.ico",
                 title="Select file containing the settings",
+                file_types=(("CSV files", ".csv"),),
+                keep_on_top=True,
+                no_window=False,
             )
             try:
                 csvfile = open(dialog_path, "r")
@@ -1223,10 +1214,11 @@ class Gui:
         user_settings.mask_file["value"] = values["mask_file"]
         user_settings.automask_save["value"] = bool(values["automask_save"])
         user_settings.binarize_auto["value"] = bool(values["binarize_auto"])
-        # FIXME implement maskview = off?
-        user_settings.maskview["value"] = "save" if values["maskview_save"] else None
+        user_settings.binarize_threshold["value"] = int(values["binarize_threshold"])
+        user_settings.maskview["value"] = None if values["maskview_off"] else user_settings.maskview["value"]
+        user_settings.maskview["value"] = "save" if values["maskview_save"] else user_settings.maskview["value"]
         user_settings.maskview["value"] = (
-            "prompt" if values["maskview_prompt"] else "save"
+            "prompt" if values["maskview_prompt"] else user_settings.maskview["value"]
         )
         user_settings.analyze_brightness["value"] = bool(values["analyze_brightness"])
         user_settings.export_distribution["value"] = bool(values["export_distribution"])
@@ -1337,9 +1329,14 @@ def folder_dialog() -> str:
         str: path to selected folder
     """
     logging.info(f"Using dialog for selecting folder with photos.")
-    folder = filedialog.askdirectory(
-        title="Select folder with photo files for evaluation",
-    )
+    
+    folder =   sg.popup_get_folder(
+                message="Select file containing the settings",
+                icon=r"logo/logo.ico",
+                title="Select file containing the settings",
+                keep_on_top=True,
+                no_window=False,
+            )
     logging.info(f"Selected folder with photo files using dialog: {folder}")
     results.add_result(
         variable="folder_dialog",
@@ -1397,7 +1394,6 @@ def clear_log_file() -> None:
     set_up_logging()
 
 
-# FIXME finalize/test function
 def end_analysis() -> None:
     """Function to be called at the end. Copies logfile to path."""
     results.export_csv(f"{os.path.splitext(photo.photo.photo_path)[0]}_results.csv")
@@ -1417,7 +1413,6 @@ def run_interface() -> None:
     # set_up_logging() needs to be executed individually at the very start
     global user_settings, results, buffer
     set_up_logging()
-    set_up_tkinter()
     results = Results()
     settings_path = Settings.set_settings_path(*settings_try_paths)
     if IGNORE_SETTINGS_FILE:
