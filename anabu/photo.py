@@ -505,7 +505,7 @@ class Photo:
             thresh_value = "auto"
         else:
             thresh_value = interface.user_settings.binarize_threshold["value"]
-            
+
         binarize_photo(thresh_value)
 
         def automask_hole_removal() -> None:
