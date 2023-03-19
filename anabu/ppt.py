@@ -92,7 +92,9 @@ class Pptx:
 
     def generate_maskview_slide(self) -> None:
         if interface.user_settings.maskview["value"] == None:
-            interface.logging.info("Did not generated slide with Maskview because it is switched off.")
+            interface.logging.info(
+                "Did not generated slide with Maskview because it is switched off."
+            )
             return
         self.maskview_slide = self.presentation.slides.add_slide(
             self.presentation.slide_layouts[11]
@@ -169,9 +171,9 @@ class Pptx:
         cell = table.cell(10, 1)
         cell.text = f'{str(round(interface.results.brightness_stdev["value"],3))}, {str(round(interface.results.brightness_dispersity["value"],3))}'
         cell = table.cell(11, 0)
-        cell.text = "optical density (calibration)"
+        cell.text = "optical density: min, mean, max (calibration)"
         cell = table.cell(11, 1)
-        cell.text = f'{str(interface.results.optical_density["value"])} ({str(interface.results.calibration_density_name["value"])})'
+        cell.text = f'{str(interface.results.optical_density_min["value"])}, {str(interface.results.optical_density["value"])}, {str(interface.results.optical_density_max["value"])} ({str(interface.results.calibration_density_name["value"])})'
         interface.logging.info("Generated slide with results table.")
 
     def generate_pinholes_slide(self) -> None:
@@ -212,7 +214,10 @@ def run_pptx() -> None:
     prs = Pptx(PATH_MASTER_PPT)
     prs.generate_title_slide()
     interface.Gui.update_progress_bar()
-    prs.generate_cropped_photo_slide()
+    try:
+        prs.generate_cropped_photo_slide()
+    except:
+        interface.logging.info("No slide with cropped photo generated.")
     interface.Gui.update_progress_bar()
     prs.generate_distribution_plot_slide()
     interface.Gui.update_progress_bar()

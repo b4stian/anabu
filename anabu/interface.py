@@ -35,7 +35,7 @@ import PySimpleGUI as sg
 # variables
 
 # version number of anabu
-VERSION = "1.0"
+VERSION = "1.1"
 
 # activate GUI
 GUI = True
@@ -284,6 +284,12 @@ settings_dict = {
         "type": bool,
         "parameter": "analyzes brightness and optical density",
     },
+    "radius_min_max": {
+        "variable": "radius_min_max",
+        "default_value": 2.5,
+        "type": float,
+        "parameter": "radius for min/max circle in mm",
+    },
     "export_distribution": {
         "variable": "export_distribution",
         "default_value": False,
@@ -318,6 +324,7 @@ def set_up_logging() -> None:
         level=logging.INFO,
         # force=True,
     )
+
 
 class Results:
     """Object to store and export all results."""
@@ -421,7 +428,7 @@ class Settings:
             logging.info(
                 "Trying to select correct csv file with settings via file dialog."
             )
-            dialog_path =  sg.popup_get_file(
+            dialog_path = sg.popup_get_file(
                 message="Select file containing the settings",
                 icon=r"logo/logo.ico",
                 title="Select file containing the settings",
@@ -1183,23 +1190,21 @@ class Gui:
                     window["create_ppt"].update(disabled=True)
 
             elif event == "Run \u2753":
-                analysis.run_button()
-                # try:
-                #     analysis.run_button()
-                # except:
-                #     logging.info("An error occurred!")
-                #     try:
-                #         copy2(
-                #             "log/logfile.log",
-                #             f"{os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt",
-                #         )
-                #         logging.info(
-                #             f"Logfile copied to {os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt."
-                #         )
-                #     except:
-                #         logging.info(
-                #             f"See logfile."
-                #         )
+                # analysis.run_button()
+                try:
+                    analysis.run_button()
+                except:
+                    logging.info("An error occurred!")
+                    try:
+                        copy2(
+                            "log/logfile.log",
+                            f"{os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt",
+                        )
+                        logging.info(
+                            f"Logfile copied to {os.path.splitext(photo.photo.photo_path)[0]}_logfile.txt."
+                        )
+                    except:
+                        logging.info(f"See logfile.")
 
         window.close()
 
@@ -1215,8 +1220,12 @@ class Gui:
         user_settings.automask_save["value"] = bool(values["automask_save"])
         user_settings.binarize_auto["value"] = bool(values["binarize_auto"])
         user_settings.binarize_threshold["value"] = int(values["binarize_threshold"])
-        user_settings.maskview["value"] = None if values["maskview_off"] else user_settings.maskview["value"]
-        user_settings.maskview["value"] = "save" if values["maskview_save"] else user_settings.maskview["value"]
+        user_settings.maskview["value"] = (
+            None if values["maskview_off"] else user_settings.maskview["value"]
+        )
+        user_settings.maskview["value"] = (
+            "save" if values["maskview_save"] else user_settings.maskview["value"]
+        )
         user_settings.maskview["value"] = (
             "prompt" if values["maskview_prompt"] else user_settings.maskview["value"]
         )
@@ -1259,7 +1268,7 @@ class Gui:
         if user_settings.autorotate["value"]:
             steps += 2 * no_files
         if user_settings.analyze_brightness["value"]:
-            steps += 6 * no_files
+            steps += 8 * no_files
         if user_settings.pinholes["value"]:
             steps += 12 * no_files
         if user_settings.create_ppt["value"]:
@@ -1329,14 +1338,14 @@ def folder_dialog() -> str:
         str: path to selected folder
     """
     logging.info(f"Using dialog for selecting folder with photos.")
-    
-    folder =   sg.popup_get_folder(
-                message="Select file containing the settings",
-                icon=r"logo/logo.ico",
-                title="Select file containing the settings",
-                keep_on_top=True,
-                no_window=False,
-            )
+
+    folder = sg.popup_get_folder(
+        message="Select file containing the settings",
+        icon=r"logo/logo.ico",
+        title="Select file containing the settings",
+        keep_on_top=True,
+        no_window=False,
+    )
     logging.info(f"Selected folder with photo files using dialog: {folder}")
     results.add_result(
         variable="folder_dialog",

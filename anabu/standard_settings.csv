@@ -19,8 +19,10 @@
 "autocrop_margin", 40, "margin for autocrop in pixels"
 "autocrop_save", "masked", "don't save (None), save cropped photo ('photo'), save cropped_masked_photo ('masked'), save photo, mask, cropped mask ('all')"
 
-"pinholes", False, "automatically evaluate pinholes",
-"export_distribution", True, "exports csv with distribution",
+"analyze_brightness", False, "analyzes brightness and optical density"
+"radius_min_max", 2.5, "radius for min/max circle in mm"
+"pinholes", False, "automatically evaluate pinholes"
+"export_distribution", True, "exports csv with distribution"
 "create_ppt", False, "If true, create ppt with main results."
 
 "target_Make", "SONY", "Target EXIF tag for photo file. Will not run if different tags are found."

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "anabu"
-version = "1.0"
+version = "1.1"
 description = "Tool for the automated projection photo analysis of black-printed Thin Film samples"
 authors = ["Bastian Ebeling <mail@bastianebeling.org>"]
 

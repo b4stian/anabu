@@ -185,6 +185,14 @@ class Evaluator:
             f"Exported file with distributions: {os.path.splitext(self.photo_path)[0]}_distribution.csv"
         )
 
+    @staticmethod
+    def mean_1_4(array: np.ndarray) -> float:
+        sum1, sum2 = 0, 0
+        for x in range(len(array)):
+            sum1 = sum1 + array[x] * (x**0.4)
+            sum2 = sum2 + array[x] * (x**1.4)
+        return sum2 / sum1
+
     def calculate_distribution_params(self) -> None:
         def mean_2(array: np.ndarray) -> float:
             """
@@ -207,13 +215,6 @@ class Evaluator:
                 sum2 = sum2 + array[x] * x * x
                 sum3 = sum3 + array[x] * x * x * x
             return sum3 / sum2
-
-        def mean_1_4(array: np.ndarray) -> float:
-            sum1, sum2 = 0, 0
-            for x in range(len(array)):
-                sum1 = sum1 + array[x] * (x**0.4)
-                sum2 = sum2 + array[x] * (x**1.4)
-            return sum2 / sum1
 
         self.brightness_min = np.min(self.grey_photo[self.cropped_mask])
         interface.logging.info(
@@ -337,7 +338,7 @@ class Evaluator:
             parameter="brightness-squared weighted mean of brightness distribution",
             value=self.brightness_2_weighted_mean,
         )
-        self.brightness_1_4_weighted_mean = mean_1_4(self.brightness_fraction)
+        self.brightness_1_4_weighted_mean = self.mean_1_4(self.brightness_fraction)
         interface.logging.info(
             f"The brightness-weighted mean (1.4) of the brightness distribution is {round(self.brightness_1_4_weighted_mean,2)}."
         )
@@ -367,61 +368,36 @@ class Evaluator:
                 value=np.where((self.cumulative_percentage) >= threshold)[0][0],
             )
 
-    def calculate_OD(self) -> float:
-        if (
-            self.brightness_1_4_weighted_mean
-            > self.calibration_density["parameters"][0][0]
-        ):
-            print(
-                "Sample is brighter than brightest calibration sample. Cannot convert to optical density."
+    def convert_OD(self, weighted_mean: float) -> float:
+        if weighted_mean > self.calibration_density["parameters"][0][0]:
+            interface.logging.info(
+                "Area is brighter than brightest calibration sample. Cannot convert to optical density."
             )
             return None
-        if (
-            self.brightness_1_4_weighted_mean
-            < self.calibration_density["parameters"][-1][0]
-        ):
-            print(
-                "Sample is darker than darkest calibration sample. Cannot convert to optical density."
+        if weighted_mean < self.calibration_density["parameters"][-1][0]:
+            interface.logging.info(
+                "Area is darker than darkest calibration sample. Cannot convert to optical density."
             )
             return None
         for i in range(len(self.calibration_density["parameters"])):
-            if (
-                self.brightness_1_4_weighted_mean
-                == self.calibration_density["parameters"][i][0]
-            ):
+            if weighted_mean == self.calibration_density["parameters"][i][0]:
                 optical_density = self.calibration_density["parameters"][i][1]
-                self.optical_density = round(optical_density, 3)
-                interface.results.add_result(
-                    variable="optical_density",
-                    parameter="average optical density of sample",
-                    value=self.optical_density,
-                )
-                interface.logging.info(
-                    f"The average optical density of the sample is {self.optical_density}"
-                )
-                return self.optical_density
+                return round(optical_density, 3)
         index_above = min(
             range(len(self.calibration_density["parameters"])),
-            key=lambda x: self.calibration_density["parameters"][x][0]
-            - self.brightness_1_4_weighted_mean
-            if self.calibration_density["parameters"][x][0]
-            - self.brightness_1_4_weighted_mean
-            > 0
+            key=lambda x: self.calibration_density["parameters"][x][0] - weighted_mean
+            if self.calibration_density["parameters"][x][0] - weighted_mean > 0
             else 256,
         )
         index_below = min(
             range(len(self.calibration_density["parameters"])),
-            key=lambda x: self.brightness_1_4_weighted_mean
-            - self.calibration_density["parameters"][x][0]
-            if self.brightness_1_4_weighted_mean
-            - self.calibration_density["parameters"][x][0]
-            > 0
+            key=lambda x: weighted_mean - self.calibration_density["parameters"][x][0]
+            if weighted_mean - self.calibration_density["parameters"][x][0] > 0
             else 256,
         )
         assert index_above == index_below - 1
         optical_density = self.calibration_density["parameters"][index_above][1] - (
-            self.calibration_density["parameters"][index_above][0]
-            - self.brightness_1_4_weighted_mean
+            self.calibration_density["parameters"][index_above][0] - weighted_mean
         ) / (
             self.calibration_density["parameters"][index_above][0]
             - self.calibration_density["parameters"][index_below][0]
@@ -429,16 +405,169 @@ class Evaluator:
             self.calibration_density["parameters"][index_above][1]
             - self.calibration_density["parameters"][index_below][1]
         )
-        self.optical_density = round(optical_density, 3)
+        return round(optical_density, 3)
+
+    def calculate_OD(self) -> None:
+        self.optical_density = self.convert_OD(self.brightness_1_4_weighted_mean)
+        interface.logging.info(
+            f"The average optical density of the sample is {self.optical_density}."
+        )
         interface.results.add_result(
             variable="optical_density",
             parameter="average optical density of sample",
             value=self.optical_density,
         )
-        interface.logging.info(
-            f"The average optical density of the sample is {self.optical_density}"
+        disk_radius = int(
+            photo.SCALE_FACTOR * interface.user_settings.radius_min_max["value"]
         )
-        return self.optical_density
+        if hasattr(photo.photo, "masked_cropped_photo"):
+            img = photo.photo.masked_cropped_photo.copy()
+        else:
+            img = photo.photo.photo.copy()
+        disk_min_rr, disk_min_cc = sm.draw.disk(
+            self.ind_min, disk_radius, shape=img.shape
+        )
+        disk_max_rr, disk_max_cc = sm.draw.disk(
+            self.ind_max, disk_radius, shape=img.shape
+        )
+        grey = sm.util.img_as_ubyte(sm.color.rgb2gray(img.copy()))
+        brightness_counts_min = np.array(
+            [
+                np.count_nonzero(grey[disk_min_rr, disk_min_cc] == i)
+                for i in self.brightness_array
+            ]
+        )
+        assert np.sum(brightness_counts_min) == np.count_nonzero(
+            grey[disk_min_rr, disk_min_cc]
+        )
+        brightness_fraction_min = brightness_counts_min / np.count_nonzero(
+            grey[disk_min_rr, disk_min_cc]
+        )
+        assert round(np.sum(brightness_fraction_min), 10) == 1
+        self.OD_min = self.convert_OD(self.mean_1_4(brightness_fraction_min))
+        interface.logging.info(
+            f"The brightest circle has an optical density of {self.OD_min}."
+        )
+        interface.results.add_result(
+            variable="optical_density_min",
+            parameter="optical density of brightest circle",
+            value=self.OD_min,
+        )
+        brightness_counts_max = np.array(
+            [
+                np.count_nonzero(grey[disk_max_rr, disk_max_cc] == i)
+                for i in self.brightness_array
+            ]
+        )
+        assert np.sum(brightness_counts_max) == np.count_nonzero(
+            grey[disk_max_rr, disk_max_cc]
+        )
+        brightness_fraction_max = brightness_counts_max / np.count_nonzero(
+            grey[disk_max_rr, disk_max_cc]
+        )
+        assert round(np.sum(brightness_fraction_max), 10) == 1
+        self.OD_max = self.convert_OD(self.mean_1_4(brightness_fraction_max))
+        interface.logging.info(
+            f"The darkest circle has an optical density of {self.OD_max}."
+        )
+        interface.results.add_result(
+            variable="optical_density_max",
+            parameter="optical density of brightest circle",
+            value=self.OD_max,
+        )
+
+    def min_max_density_centers(self) -> tuple:
+        def mean_brightness_circle(
+            grey_photo: np.ndarray, disk_radius: float
+        ) -> np.ndarray:
+            disk = sm.morphology.disk(int(photo.SCALE_FACTOR * disk_radius))
+            return sm.filters.rank.mean(grey_photo, disk)
+
+        if hasattr(photo.photo, "masked_cropped_photo"):
+            img = photo.photo.masked_cropped_photo.copy()
+            interface.logging.info("Finding min/max circle on cropped photo.")
+        else:
+            img = photo.photo.photo.copy()
+            interface.logging.info("Finding min/max circle on original photo.")
+        disk_radius = int(
+            photo.SCALE_FACTOR * interface.user_settings.radius_min_max["value"]
+        )
+        grey = sm.util.img_as_ubyte(sm.color.rgb2gray(img.copy()))
+        avg = mean_brightness_circle(
+            grey, interface.user_settings.radius_min_max["value"]
+        )
+        mask_eroded = photo.photo.cropped_mask.copy()
+        disk = sm.morphology.disk(disk_radius)
+        mask_eroded = sm.morphology.binary_erosion(mask_eroded, footprint=disk)
+        avg_eroded_min = avg.copy()
+        avg_eroded_min[~mask_eroded] = 0
+        avg_eroded_max = avg.copy()
+        avg_eroded_max[~mask_eroded] = 255
+        ind_min = np.unravel_index(
+            np.argmax(avg_eroded_min, axis=None), avg_eroded_min.shape
+        )
+        self.ind_min = ind_min
+        interface.results.add_result(
+            variable="center_min_circle",
+            parameter="center point of the circle with maximum brightness",
+            value=ind_min,
+        )
+        ind_max = np.unravel_index(
+            np.argmin(avg_eroded_max, axis=None), avg_eroded_max.shape
+        )
+        self.ind_max = ind_max
+        interface.results.add_result(
+            variable="center_max_circle",
+            parameter="center point of the circle with minimum brightness",
+            value=ind_max,
+        )
+        if hasattr(photo.photo, "masked_cropped_photo"):
+            interface.logging.info(
+                f'The center of the circle ({interface.user_settings.radius_min_max["value"]*2} mm diameter) with maximum brightness is at pixel {ind_min} in the cropped photo.'
+            )
+            interface.logging.info(
+                f'The center of the circle ({interface.user_settings.radius_min_max["value"]*2} mm diameter) with minimum brightness is at pixel {ind_max} in the cropped photo.'
+            )
+        else:
+            interface.logging.info(
+                f'The center of the circle ({interface.user_settings.radius_min_max["value"]*2} mm diameter) with maximum brightness is at pixel {ind_min} in the original photo.'
+            )
+            interface.logging.info(
+                f'The center of the circle ({interface.user_settings.radius_min_max["value"]*2} mm diameter) with minimum brightness is at pixel {ind_max} in the original photo.'
+            )
+        return ind_max, ind_min
+
+    def draw_min_max_circles(self, ind_min: tuple, ind_max: tuple):
+        if hasattr(photo.photo, "masked_cropped_photo"):
+            img = photo.photo.masked_cropped_photo.copy()
+            interface.logging.info("Drawing min/max circle on cropped photo.")
+        else:
+            img = photo.photo.photo.copy()
+            interface.logging.info("Drawing min/max circle on original photo.")
+        disk_radius = int(
+            photo.SCALE_FACTOR * interface.user_settings.radius_min_max["value"]
+        )
+        for i in {1, 2, 3, 4, 5, 6}:
+            rrminp, ccminp = sm.draw.circle_perimeter(
+                *ind_min, radius=int(disk_radius) + i, method="andres", shape=img.shape
+            )
+            rrmaxp, ccmaxp = sm.draw.circle_perimeter(
+                *ind_max, radius=int(disk_radius) + i, method="andres", shape=img.shape
+            )
+            if i % 2 == 1:
+                img[rrminp, ccminp, :] = [1, 1, 1]
+                img[rrmaxp, ccmaxp, :] = [1, 1, 1]
+            elif i % 2 == 0:
+                img[rrminp, ccminp, :] = [217 / 255, 71 / 255, 95 / 255]
+                img[rrmaxp, ccmaxp, :] = [117 / 255, 185 / 255, 108 / 255]
+        sm.io.imsave(
+            os.path.splitext(self.photo_path)[0] + "_" + "minmax" + ".png",
+            sm.util.img_as_ubyte(img),
+        )
+        photo.photo.cropped_photo = img
+        interface.logging.info(
+            f'Saved photo with marked min/max brightness circles to {os.path.splitext(self.photo_path)[0] + "_" + "minmax" + ".png"}.'
+        )
 
 
 def run_density():
@@ -450,6 +579,10 @@ def run_density():
     evaluator.create_brightness_arrays()
     interface.Gui.update_progress_bar()
     evaluator.calculate_distribution_params()
+    interface.Gui.update_progress_bar()
+    evaluator.min_max_density_centers()
+    interface.Gui.update_progress_bar()
+    evaluator.draw_min_max_circles(evaluator.ind_min, evaluator.ind_max)
     interface.Gui.update_progress_bar()
     evaluator.calculate_OD()
     interface.Gui.update_progress_bar()
