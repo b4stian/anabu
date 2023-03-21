@@ -31,9 +31,6 @@ FIG_WIDTH = 33.5 * CM
 # height of placeholder in pptx
 FIG_HEIGHT = 15 * CM
 
-# distance of ticks in scales in mm
-TICK_DISTANCE = 30
-
 # Kuraray color scheme from branding homepage
 kuracolors_rgb = {
     "Cyan 80%": (0, 176, 233),
@@ -230,24 +227,31 @@ def save_photo_scales(
             return ticks_mm
         else:
             raise ValueError("px_mm must be 'px' or 'mm'.")
+        
+    if interface.user_settings.analyze_brightness["value"]:
+        img = photo.photo_minmax
+    elif interface.user_settings.autocrop["value"]:
+        img = photo.cropped_photo
+    else: 
+        img = photo.photo
 
     plt.clf()
     sns.set_context("poster", font_scale=0.8)
     f, ax = plt.subplots(figsize=(FIG_WIDTH, FIG_HEIGHT), constrained_layout=True)
     # ax.grid(False)
-    yticks = create_ticks(photo.masked_cropped_photo, "y", "px", tick_distance)
+    yticks = create_ticks(img, "y", "px", tick_distance)
     ax.set_yticks(yticks)
     ax.set_yticklabels(
-        create_ticks(photo.masked_cropped_photo, "y", "mm", tick_distance)
+        create_ticks(img, "y", "mm", tick_distance)
     )
-    xticks = create_ticks(photo.masked_cropped_photo, "x", "px", tick_distance)
+    xticks = create_ticks(img, "x", "px", tick_distance)
     ax.set_xticks(xticks)
     ax.set_xticklabels(
-        create_ticks(photo.masked_cropped_photo, "x", "mm", tick_distance)
+        create_ticks(img, "x", "mm", tick_distance)
     )
     ax.tick_params(direction="out", length=10, axis="both")
     ax.set(xlabel="x position in mm", ylabel="y position in mm")
-    plt.imshow(photo.cropped_photo)
+    plt.imshow(img)
     plt.savefig(
         os.path.splitext(photo.photo_path)[0] + "_scale_axes.png",
         dpi=360,
@@ -396,7 +400,7 @@ def run_charts() -> None:
     kurapalette = color_scheme.palette(palette_list)
     interface.logging.info("Defined Kuraray color palette.")
     color_scheme.initialize_sns_ticks()
-    save_photo_scales(photo.photo, photo.SCALE_FACTOR, TICK_DISTANCE)
+    save_photo_scales(photo.photo, photo.SCALE_FACTOR, tick_distance = interface.user_settings.tick_distance["value"])
     color_scheme.initialize_sns_grid()
     plot_distribution(
         density.evaluator,

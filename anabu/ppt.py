@@ -200,12 +200,16 @@ class Pptx:
         interface.logging.info("Generated slide with marked pinholes.")
 
     def save_presentation(self) -> None:
-        self.presentation.save(
-            os.path.splitext(photo.photo.photo_path)[0] + "_results.pptx"
-        )
-        interface.logging.info(
-            f"Saved PPTX with results to {os.path.splitext(photo.photo.photo_path)[0] + '_results.pptx'}."
-        )
+        try:
+            self.presentation.save(
+                os.path.splitext(photo.photo.photo_path)[0] + "_results.pptx"
+            )
+            interface.logging.info(
+                f"Saved PPTX with results to {os.path.splitext(photo.photo.photo_path)[0] + '_results.pptx'}."
+            )
+        except:
+            interface.logging.error("Presentation could not be saved. Is the file opened?")
+            
 
 
 def run_pptx() -> None:

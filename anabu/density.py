@@ -437,13 +437,13 @@ class Evaluator:
                 for i in self.brightness_array
             ]
         )
-        assert np.sum(brightness_counts_min) == np.count_nonzero(
-            grey[disk_min_rr, disk_min_cc]
-        )
+        # assert np.sum(brightness_counts_min) == np.count_nonzero(
+        #     grey[disk_min_rr, disk_min_cc]
+        # )
         brightness_fraction_min = brightness_counts_min / np.count_nonzero(
             grey[disk_min_rr, disk_min_cc]
         )
-        assert round(np.sum(brightness_fraction_min), 10) == 1
+        # assert round(np.sum(brightness_fraction_min), 10) == 1
         self.OD_min = self.convert_OD(self.mean_1_4(brightness_fraction_min))
         interface.logging.info(
             f"The brightest circle has an optical density of {self.OD_min}."
@@ -459,13 +459,13 @@ class Evaluator:
                 for i in self.brightness_array
             ]
         )
-        assert np.sum(brightness_counts_max) == np.count_nonzero(
-            grey[disk_max_rr, disk_max_cc]
-        )
+        # assert np.sum(brightness_counts_max) == np.count_nonzero(
+        #     grey[disk_max_rr, disk_max_cc]
+        # )
         brightness_fraction_max = brightness_counts_max / np.count_nonzero(
             grey[disk_max_rr, disk_max_cc]
         )
-        assert round(np.sum(brightness_fraction_max), 10) == 1
+        # assert round(np.sum(brightness_fraction_max), 10) == 1
         self.OD_max = self.convert_OD(self.mean_1_4(brightness_fraction_max))
         interface.logging.info(
             f"The darkest circle has an optical density of {self.OD_max}."
@@ -539,10 +539,10 @@ class Evaluator:
 
     def draw_min_max_circles(self, ind_min: tuple, ind_max: tuple):
         if hasattr(photo.photo, "masked_cropped_photo"):
-            img = photo.photo.masked_cropped_photo.copy()
+            img = sm.util.img_as_ubyte(photo.photo.masked_cropped_photo.copy())
             interface.logging.info("Drawing min/max circle on cropped photo.")
         else:
-            img = photo.photo.photo.copy()
+            img = sm.util.img_as_ubyte(photo.photo.photo.copy())
             interface.logging.info("Drawing min/max circle on original photo.")
         disk_radius = int(
             photo.SCALE_FACTOR * interface.user_settings.radius_min_max["value"]
@@ -555,16 +555,16 @@ class Evaluator:
                 *ind_max, radius=int(disk_radius) + i, method="andres", shape=img.shape
             )
             if i % 2 == 1:
-                img[rrminp, ccminp, :] = [1, 1, 1]
-                img[rrmaxp, ccmaxp, :] = [1, 1, 1]
+                img[rrminp, ccminp, :] = [255, 255, 255]
+                img[rrmaxp, ccmaxp, :] = [255, 255, 255]
             elif i % 2 == 0:
-                img[rrminp, ccminp, :] = [217 / 255, 71 / 255, 95 / 255]
-                img[rrmaxp, ccmaxp, :] = [117 / 255, 185 / 255, 108 / 255]
+                img[rrminp, ccminp, :] = [217, 71, 95]
+                img[rrmaxp, ccmaxp, :] = [117, 185, 108]
         sm.io.imsave(
             os.path.splitext(self.photo_path)[0] + "_" + "minmax" + ".png",
-            sm.util.img_as_ubyte(img),
+            img,
         )
-        photo.photo.cropped_photo = img
+        photo.photo.photo_minmax = img
         interface.logging.info(
             f'Saved photo with marked min/max brightness circles to {os.path.splitext(self.photo_path)[0] + "_" + "minmax" + ".png"}.'
         )

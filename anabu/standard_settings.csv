@@ -7,7 +7,7 @@
 "photo_folder", "", "folder for batch batch evaluation"
 
 "flip", False, "flip photo (rotate by 180°)"
-"autorotate", True, "automatically rotate photo so that main axis is horizontal"
+"autorotate", False, "automatically rotate photo so that main axis is horizontal"
 "automask", True, "If True use automask, if False, try mask_file, then use dialog for selection."
 "automask_save", True, "save automask"
 "automask_grow", 0.65, "growing of automask (0.5 <= grow < 1)"
@@ -24,6 +24,7 @@
 "pinholes", False, "automatically evaluate pinholes"
 "export_distribution", True, "exports csv with distribution"
 "create_ppt", False, "If true, create ppt with main results."
+"tick_distance", 30, "distance of ticks in scales in mm"
 
 "target_Make", "SONY", "Target EXIF tag for photo file. Will not run if different tags are found."
 "target_Model", "ILCE-7M2", "Target EXIF tag for photo file. Will not run if different tags are found."

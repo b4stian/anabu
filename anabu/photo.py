@@ -983,11 +983,14 @@ def run_photo() -> None:
     interface.Gui.update_progress_bar()
     photo.maskview(output=interface.user_settings.maskview["value"])
     interface.Gui.update_progress_bar()
-    photo.autocrop(
-        photo.photo,
-        margin=interface.user_settings.autocrop_margin["value"],
-        save=interface.user_settings.autocrop_save["value"],
-    )
+    if interface.user_settings.autocrop["value"]:
+        photo.autocrop(
+            photo.photo,
+            margin=interface.user_settings.autocrop_margin["value"],
+            save=interface.user_settings.autocrop_save["value"],
+        )
+    else:
+        interface.logging.info("Autocrop turned off.")
     interface.Gui.update_progress_bar()
 
 

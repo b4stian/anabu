@@ -302,6 +302,12 @@ settings_dict = {
         "type": bool,
         "parameter": "auto-create pptx file with results?",
     },
+    "tick_distance": {
+        "variable": "tick_distance",
+        "default_value": 30,
+        "type": int,
+        "parameter": "distance of ticks in scales in mm",
+    },
 }
 
 # ------------------------------------------------
