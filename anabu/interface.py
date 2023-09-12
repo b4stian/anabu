@@ -1196,7 +1196,7 @@ class Gui:
                     window["create_ppt"].update(disabled=True)
 
             elif event == "Run \u2753":
-                # analysis.run_button()
+                #analysis.run_button()
                 try:
                     analysis.run_button()
                 except:
@@ -1408,6 +1408,11 @@ def clear_log_file() -> None:
         pass
     set_up_logging()
 
+def initiate_results() -> None:
+    """Create an empty results object."""
+    global results
+    results = Results()
+
 
 def end_analysis() -> None:
     """Function to be called at the end. Copies logfile to path."""
@@ -1428,7 +1433,7 @@ def run_interface() -> None:
     # set_up_logging() needs to be executed individually at the very start
     global user_settings, results, buffer
     set_up_logging()
-    results = Results()
+    initiate_results()
     settings_path = Settings.set_settings_path(*settings_try_paths)
     if IGNORE_SETTINGS_FILE:
         logging.info("Ignoring files with settings.")

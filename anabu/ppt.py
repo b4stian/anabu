@@ -38,9 +38,13 @@ class Pptx:
             self.presentation = Presentation(master_pptx)
         except:
             interface.logging.info("Master PPTX not found. Using file dialog.")
-            master_pptx = interface.filedialog.askopenfilename(
-                filetypes=[("PPTX Files", ".pptx")],
+            master_pptx = interface.sg.popup_get_file(
+                message="Select master file for presentation",
+                icon=r"logo/logo.ico",
                 title="Select master PPTX file.",
+                file_types=(("PPTX Files", ".pptx"),),
+                keep_on_top=True,
+                no_window=False,
             )
             interface.logging.info(f"Selected photo file using dialog: {master_pptx}")
             self.presentation = Presentation(master_pptx)
@@ -223,7 +227,10 @@ def run_pptx() -> None:
     except:
         interface.logging.info("No slide with cropped photo generated.")
     interface.Gui.update_progress_bar()
-    prs.generate_distribution_plot_slide()
+    try:
+        prs.generate_distribution_plot_slide()
+    except:
+        interface.logging.info("No slide with distribution plots generated.")
     interface.Gui.update_progress_bar()
     prs.generate_results_slide()
     interface.Gui.update_progress_bar()

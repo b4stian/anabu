@@ -31,6 +31,12 @@ def run_button():
     """Runs the code when the run button in the GUI is pressed."""
     global progress_generator
     interface.clear_log_file()
+    interface.initiate_results()
+    interface.results.add_result(
+        variable="version",
+        parameter="version of anabu",
+        value=interface.VERSION,
+    )
     interface.Gui.initiate_progress_bar()
     interface.logging.info("--------------------------------------------------------")
     interface.logging.info(
