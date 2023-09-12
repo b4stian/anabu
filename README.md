@@ -1,4 +1,4 @@
-# anabu v 1.1
+# anabu v 1.2
 
 Python package for the automated analysis of photos of Cam Viera samples taken on a back-illumination table.
 
